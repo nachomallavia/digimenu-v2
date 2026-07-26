@@ -1,0 +1,14 @@
+---
+import Root from "./Root.astro";
+
+interface Props {
+	title?: string;
+}
+
+const { title = "Menú" } = Astro.props;
+---
+
+<Root title={title}>
+	<!-- Public menu shell + brand CSS vars land in DIG-25 -->
+	<slot />
+</Root>

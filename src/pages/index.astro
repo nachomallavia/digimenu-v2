@@ -1,0 +1,20 @@
+---
+import { Button } from "@/components/starwind/button";
+import Root from "@/layouts/Root.astro";
+---
+
+<Root title="DigiMenu">
+	<main class="mx-auto flex min-h-dvh max-w-lg flex-col justify-center gap-6 px-6">
+		<div class="grid gap-2">
+			<p class="text-muted-foreground text-sm tracking-wide uppercase">DigiMenu</p>
+			<h1 class="text-3xl font-semibold tracking-tight">Menús digitales</h1>
+			<p class="text-muted-foreground text-base">
+				Scaffold Phase 0 — Astro SSR, Starwind, Tailwind. Sin EmDash.
+			</p>
+		</div>
+		<div class="flex flex-wrap gap-3">
+			<Button href="/app">Ir a /app</Button>
+			<Button href="/m" variant="outline">Ir a /m</Button>
+		</div>
+	</main>
+</Root>

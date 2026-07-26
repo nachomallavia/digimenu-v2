@@ -1,0 +1,15 @@
+---
+import Root from "./Root.astro";
+
+interface Props {
+	title?: string;
+}
+
+const { title = "DigiMenu — Acceso" } = Astro.props;
+---
+
+<Root title={title}>
+	<main class="mx-auto flex min-h-dvh max-w-md flex-col justify-center px-6">
+		<slot />
+	</main>
+</Root>
