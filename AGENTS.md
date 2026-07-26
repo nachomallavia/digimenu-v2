@@ -1,68 +1,107 @@
 # DigiMenu v2 — Agent & contributor guide
 
-> **Status:** Draft — fill collaboratively (Linear [DIG-2](https://linear.app/cheij-lab/issue/DIG-2/alpha-collaborative-agentsmd-architecture-and-file-structure)).  
-> Phase 0 must not start until this is approved ([DIG-9](https://linear.app/cheij-lab/issue/DIG-9)).
+> **Status:** Decisions locked for Alpha ([DIG-2](https://linear.app/cheij-lab/issue/DIG-2/alpha-collaborative-agentsmd-architecture-and-file-structure)).  
+> Phase 0 starts only after checkpoint [DIG-9](https://linear.app/cheij-lab/issue/DIG-9) (go/no-go humano).  
+> **Edits to this file:** only after explicit human confirmation.
 
 ## Product in one line
 
 Restaurant owners manage digital menus in `/app`; guests see branded menus at `/m/{restaurant}` (+ `/{menu}`).
 
+**Scale today:** 1 developer, 1 restaurant user. Prefer simple paths; do not build abstractions “for later” without consensus. Schema/RLS may anticipate N restaurants cheaply; UX and Phase-4 features stay deferred until they hurt.
+
 ## Stack
 
-- Astro (SSR) + Starwind + Tailwind
+- Astro (SSR) + Starwind + Tailwind v4
 - Supabase (Auth, Postgres, Storage)
 - Vercel (Node adapter)
+- **Nanostores** — client UI state in `lib/client/*` (filters, pending edits, toasts). Not a server/data layer; mutations still go through Astro Actions → `lib/server/*`.
 - **Not using:** EmDash, D1, R2-via-EmDash, draft/publish CMS ceremony
 
-## Goals for this document
+## Language
 
-Agree on:
+| Surface | Language |
+|---------|----------|
+| Linear, product UI, chat | Spanish (ES) |
+| Commits | Short (EN or ES; keep brief) |
+| Code: folders, modules, TS identifiers | English |
+| DB: tables & columns | Spanish (`restaurantes`, `menu_productos`, …) |
 
-1. How we **diagram** the project (domain + request flows)
-2. How we **structure files** so pages stay thin and logic stays findable
-3. Explicit **anti-patterns** we refuse to repeat from v1
+## Legacy reference (DigiMenu EmDash / v1)
 
----
+| | Path |
+|--|------|
+| This repo | `/Users/ignaciomallaviabarrena/Documents/programacion/digimenu-v2` |
+| Sibling (parity / port reference) | `/Users/ignaciomallaviabarrena/Documents/programacion/digimenu` |
 
-## Anti-patterns (from DigiMenu EmDash era)
+Agents: resolve the sibling as `../digimenu` from this repo root, or the absolute path above. Do not assume it is nested inside digimenu-v2.
 
-- [ ] Deep nested conditionals / branching UI logic inside `.astro` pages
-- [ ] Many small `lib/*` folders with unclear ownership (“lib sprawl”)
-- [ ] JSON `string[]` pretending to be relations (use real FKs / junctions)
-- [ ] Dual write paths (in-process + REST) for the same mutation
-- [ ] Product UI depending on a CMS admin
+## Parity source of truth
 
-*(Refine wording together.)*
+For CP2 / CP3 gates:
 
----
+1. Sibling repo at `/Users/ignaciomallaviabarrena/Documents/programacion/digimenu` (implementation reference)
+2. Written checklist in this repo (`docs/parity.md` when created)
+3. Production only for visual smoke
 
-## Proposed module map (TO DISCUSS)
+CSV backup: `/Users/ignaciomallaviabarrena/Documents/programacion/digimenu/backups/` (e.g. `emdash-2026-07-26/`) — restore mapping later, not UX design.
 
-Replace with the agreed layout. Placeholder only:
+## Module map (approved)
 
 ```text
 src/
-  pages/          # thin route entrypoints only
-  layouts/
-  components/     # UI by surface: app/ | menu/ | ui/
+  pages/                         # thin routes: load + render + wire Actions
+  layouts/                       # Root, Dashboard (/app), Menu (/m), AppGuest
+  components/
+    app/                         # owner UI
+    menu/
+      templates/                 # Classic+, render-only templates
+    starwind/                    # Starwind CLI output — import from here
+  actions/                       # Astro Actions → call lib/server/* only
   lib/
-    domain/       # pure types + domain helpers (no I/O)
-    db/           # Supabase queries / mutations
-    auth/         # session, requireOwner
-    menu/         # public view-model, templates registry
-    owner/        # owner-only orchestration (CSV, batch, etc.)
+    domain/                      # pure types, brand/theme parsers (no I/O) + domain.md
+    server/
+      db/                        # Supabase queries/mutations + db.md
+      auth/                      # session, requireOwner, digimenu_owner cookie + auth.md
+      menu/                      # public loaders, view-model + menu.md
+      owner/                     # CSV, batch orchestration + owner.md
+    client/
+      menu/                      # public client (e.g. filters) → index.ts + menu.md
+      owner/                     # owner client (inline/batch UI) → index.ts + owner.md
+supabase/
+  migrations/                    # Postgres + Storage policies SQL
+docs/                            # parity checklist, backup notes (not architecture diagrams)
 ```
 
-Open questions:
+### Import rules
 
-- [ ] ES vs EN for table/column names?
-- [ ] Where do client scripts live (`*-client.ts` next to feature vs `lib/.../client`)?
-- [ ] One `components/ui` (Starwind wrappers) vs import Starwind directly?
-- [ ] `docs/` for diagrams vs mermaid only in this file?
+- `.astro` pages/layouts and `src/actions/*` may import `lib/server/*` and `lib/domain/*`.
+- Browser scripts may import `lib/client/*` and `lib/domain/*` only.
+- `lib/client` **must never** import `lib/server`.
+- Nanostores stores live under `lib/client/<area>/` (with the area’s other client modules).
+- Starwind: import from `@/components/starwind/<component>` (CLI-installed source). No extra `components/ui` wrapper layer unless a DigiMenu-specific API is agreed.
+- Client modules: `lib/client/<area>/<entity>.ts` re-exported from `lib/client/<area>/index.ts`.
 
----
+### Documentation in lib
 
-## Domain sketch (TO DISCUSS)
+Each `lib/**/<area>/` that holds functions must include `<area>.md` describing:
+
+- Purpose of the module
+- How entities interact (orchestration), not a new function per Linear ticket
+- Public entrypoints agents should reuse
+
+Diagrams for architecture live as mermaid **in this file**. Use `docs/` for parity/backup only.
+
+## Anti-patterns (forbidden)
+
+1. **Fat `.astro`:** treat pages as a render engine — no deep nesting, no heavy branching, no business logic. Load data, render components, wire Actions.
+2. **Lib sprawl:** no orphan `lib/foo` without ownership and an `<area>.md`. Prefer extending existing server/client areas.
+3. **JSON `string[]` as relations:** M2M must be real junction tables (`menu_productos`, `producto_tags`). (JSONB for brand/theme config is fine.)
+4. **Dual write paths:** one mutation path — Astro Actions → `lib/server/*`. No parallel REST for the same write (except agreed upload/CSV helpers that still call the same server modules).
+5. **CMS admin as product UI:** no EmDash (or similar) admin dependency.
+6. **Unconsented abstractions:** no “just in case” layers without human OK.
+
+## Domain sketch
 
 ```mermaid
 erDiagram
@@ -75,28 +114,58 @@ erDiagram
   productos ||--o{ producto_tags : tagged
   tags ||--o{ producto_tags : on
   productos }o--o| categorias : optional
-  owners ||--o{ owner_restaurants : maps
-  restaurantes ||--o{ owner_restaurants : owned
+  owner_restaurantes }o--|| restaurantes : owns
+  owner_restaurantes }o--|| auth_users : maps
 ```
 
----
+### Domain rules (Alpha)
 
-## Request flows (TO DISCUSS)
+- **IDs:** UUID PKs; `slug` unique per restaurant where public URLs need it.
+- **Tenancy:** `owner_restaurantes` (N:N). UX may assume one active restaurant; schema stays ready for more.
+- **Visibility:** no draft/publish CMS. Use simple flags (`activo` / `disponible`) for presence/stock later.
+- **Brand / theme:** JSONB on `restaurantes`:
+  - `brand` — palette + typefaces (identity)
+  - `theme` — semantic roles for the public menu (values chosen from `brand`)
+  - Parsed/validated in `lib/domain`; public layout exposes CSS variables; templates only consume vars.
+- **Media:** Storage paths `{restaurante_id}/…`; public URL stored on the row.
+- **Schema column details:** defer to Phase 1 ([DIG-10](https://linear.app/cheij-lab/issue/DIG-10)); must match this file when written.
+
+## Request flows
 
 ```mermaid
 flowchart LR
   subgraph owner [Owner /app]
-    A[Supabase Auth] --> B[Session cookie]
-    B --> C[SSR page]
-    C --> D[lib/db + Storage]
+    A[Supabase Auth magic link] --> B[SSR session + digimenu_owner cookie]
+    B --> C[Thin .astro page]
+    C --> D[lib/server/db + Storage]
+    C --> E[Astro Action]
+    E --> D
   end
   subgraph public [Public /m]
-    E[SSR load] --> F[view-model]
-    F --> G[Template Classic+]
+    F[SSR load via lib/server/menu] --> G[view-model]
+    G --> H[components/menu/templates]
   end
 ```
 
----
+### Auth & Supabase clients
+
+| Client | Use |
+|--------|-----|
+| SSR user / anon (`@supabase/ssr`) | All HTTP requests; RLS applies |
+| Service role | Seed/scripts only — **never** in public pages, Actions serving browsers, or client bundles |
+
+- Phase 0 auth: magic link only (OAuth later, Phase 4).
+- Keep a signed `digimenu_owner` cookie for tenancy convenience (no EmDash snapshot fields).
+- RLS by restaurant ownership via `owner_restaurantes` from Phase 1.
+
+### Mutations
+
+Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation logic.
+
+### Live collections & cache
+
+- Astro **live collections:** explore later; do not block Phase 0–1 scaffold. If adopted, loaders must be thin wrappers over `lib/server/*` (no second data layer).
+- Public cache / ISR-style revalidation: investigate in Phase 3 ([DIG-26](https://linear.app/cheij-lab/issue/DIG-26)); no Cloudflare Cache API patterns.
 
 ## What we will NOT port from EmDash
 
@@ -105,18 +174,32 @@ flowchart LR
 - Portable Text pages (unless later product need)
 - Taxonomy engine (categories are normal tables)
 - EmDash plugins / Visual Edit dependency
+- Any EmDash package imports
 
----
+## Deferred (explicit)
 
-## Working agreement
+| Topic | Until |
+|-------|--------|
+| Self-serve onboarding | Phase 4 |
+| Google OAuth | Phase 4 |
+| Custom domains / subdomains | Phase 4 (slugs ready earlier) |
+| Multi-template gallery | Phase 4 (Classic only through CP3; registry can exist minimal) |
+| Full schema column list | After this doc; Phase 1 DIG-10 |
+| Live collections adoption | Spike when useful |
+| Vercel cache / ISR details | Phase 3 DIG-26 |
 
-- Thin `.astro`: load data, render components, wire forms — logic in `lib/`
-- One clear home per concern (see module map)
-- Prefer junctions over JSON arrays for M2M
-- Document decisions here when we change structure
+## Agent working agreement
+
+- **1 Linear issue → 1 PR** (unless human says otherwise).
+- **Definition of Done:** acceptance criteria on the issue; `astro build` (or agreed check) passes; no new folders outside the module map; prefer extending documented `lib/*` entrypoints.
+- **AGENTS.md changes:** propose in chat; edit only after affirmative human OK; append the session log.
+- **Legacy reference:** read `/Users/ignaciomallaviabarrena/Documents/programacion/digimenu` (or `../digimenu`) for parity; do not copy EmDash admin, draft, Portable Text, or taxonomy engine.
+- **Roadmap:** [DigiMenu v2 on Linear](https://linear.app/cheij-lab/project/digimenu-v2-0a84b080f200).
 
 ## Session log
 
 | Date | Decision |
 |------|----------|
 | 2026-07-26 | Repo created; AGENTS.md stub opened for DIG-2 |
+| 2026-07-26 | DIG-2 collaborative lock: module map `lib/{domain,server,client}`, Actions in `src/actions`, Starwind direct imports, ES DB / EN code, junctions not JSON M2M, brand/theme JSONB, SSR+RLS clients, thin `.astro`, `lib/**/<area>.md`, parity via sibling digimenu + `docs/parity.md`, no EmDash |
+| 2026-07-26 | Stack: Nanostores for `lib/client` state; legacy path locked to `/Users/ignaciomallaviabarrena/Documents/programacion/digimenu` |
