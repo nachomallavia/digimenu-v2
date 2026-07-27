@@ -1,10 +1,10 @@
 ---
 /**
- * Restaurant entry: multi-menu shell or single-menu render.
+ * Restaurant entry: multi-menu shell (landing + menus) or single-menu render.
  * Legacy `?menu=` redirects to `/m/{restaurant}/{menu}`.
- * Classic template UI arrives in DIG-24 — this page proves SSR loader + view-model.
  */
 import Menu from "@/layouts/Menu.astro";
+import PublicMenu from "@/components/menu/PublicMenu.astro";
 import {
 	isPreparedPublicMenuPage,
 	preparePublicMenuPage,
@@ -15,83 +15,20 @@ if (!isPreparedPublicMenuPage(prepared)) {
 	return prepared;
 }
 
-const { viewModel, title, multiMenu, initialView } = prepared;
-const activeProducts = viewModel.products.filter((p) => p.inActiveMenu);
-const activeSections = viewModel.sections.filter((s) =>
-	s.products.some((p) => p.inActiveMenu),
-);
+const { loaded, viewModel, title, multiMenu, initialView } = prepared;
 ---
 
-<Menu title={title}>
-	<main class="mx-auto flex max-w-2xl flex-col gap-6 px-6 py-12">
-		<header class="flex flex-col gap-2">
-			{
-				viewModel.restaurant.logoUrl && (
-					<img
-						src={viewModel.restaurant.logoUrl}
-						alt=""
-						class="h-12 w-auto max-w-[10rem] object-contain"
-					/>
-				)
-			}
-			<h1 class="text-3xl font-semibold tracking-tight">{viewModel.restaurant.name}</h1>
-			{
-				viewModel.restaurant.description && (
-					<p class="text-muted-foreground">{viewModel.restaurant.description}</p>
-				)
-			}
-		</header>
-
-		{
-			multiMenu && initialView === "landing" && (
-				<nav class="flex flex-col gap-2" aria-label="Menús">
-					<p class="text-sm text-muted-foreground">Elegí un menú</p>
-					<ul class="flex flex-col gap-2">
-						{viewModel.menus.map((m) => (
-							<li>
-								<a
-									href={`/m/${viewModel.restaurantSlug}/${m.slug}`}
-									class="text-primary underline-offset-4 hover:underline"
-								>
-									{m.name}
-								</a>
-							</li>
-						))}
-					</ul>
-				</nav>
-			)
-		}
-
-		{
-			(!multiMenu || initialView === "menu") && (
-				<>
-					<p class="text-sm text-muted-foreground">
-						{viewModel.activeMenu.name}
-						<span class="text-muted-foreground/80"> · </span>
-						{activeProducts.length} productos · {activeSections.length} secciones
-					</p>
-					{activeSections.map((section) => (
-						<section class="flex flex-col gap-3">
-							<h2 class="text-xl font-semibold tracking-tight">{section.label}</h2>
-							<ul class="flex flex-col gap-3">
-								{section.products
-									.filter((p) => p.inActiveMenu)
-									.map((p) => (
-										<li class="flex items-start justify-between gap-4 border-b border-border pb-3">
-											<div>
-												<p class="font-medium">{p.name}</p>
-												{p.description && (
-													<p class="text-muted-foreground text-sm">{p.description}</p>
-												)}
-											</div>
-											<p class="tabular-nums text-sm">{p.priceLabel}</p>
-										</li>
-									))}
-							</ul>
-						</section>
-					))}
-				</>
-			)
-		}
-	</main>
+<Menu
+	title={title}
+	description={loaded.restaurant.description}
+	restaurantSlug={loaded.restaurantSlug}
+	theme={loaded.theme}
+	brand={loaded.brand}
+>
+	<PublicMenu
+		viewModel={viewModel}
+		restaurant={multiMenu ? loaded.restaurant : undefined}
+		theme={multiMenu ? loaded.theme : undefined}
+		initialView={multiMenu ? initialView : "menu"}
+	/>
 </Menu>

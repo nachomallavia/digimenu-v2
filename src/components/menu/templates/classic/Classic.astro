@@ -1,0 +1,26 @@
+---
+/**
+ * Classic public menu template.
+ * Brand tokens from Menu.astro CSS vars; Tailwind only (no scoped CSS).
+ * Props = MenuViewModel only (no DB / regroup).
+ */
+import type { MenuViewModel } from "@/lib/server/menu";
+import ClassicSection from "./ClassicSection.astro";
+
+type Props = MenuViewModel;
+
+const { sections, products } = Astro.props;
+const hasVisibleProducts = products.some((p) => p.inActiveMenu);
+const sectionsWithMeta = sections.map((section) => ({
+	...section,
+	hidden: !section.products.some((p) => p.inActiveMenu),
+}));
+---
+
+<article class="mx-auto max-w-2xl" data-menu-root>
+	<p data-menu-empty hidden={hasVisibleProducts}>
+		Todavía no hay productos en este menú.
+	</p>
+
+	{sectionsWithMeta.map((section) => <ClassicSection section={section} />)}
+</article>

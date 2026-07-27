@@ -1,0 +1,101 @@
+---
+/**
+ * Public restaurant shell: landing + menu in one document.
+ * Multi-menu: client views + History API (no SSR hop).
+ * Single-menu: menu only (no landing panel).
+ * Template map: every plantilla receives the same MenuViewModel.
+ */
+import Classic from "./templates/classic/Classic.astro";
+import MenuHeader from "./MenuHeader.astro";
+import RestaurantLanding from "./RestaurantLanding.astro";
+import type { Restaurant, RestaurantTheme } from "@/lib/domain";
+import { resolveMenuTemplateId } from "@/lib/domain";
+import type { MenuViewModel } from "@/lib/server/menu";
+
+type Props = {
+	viewModel: MenuViewModel;
+	/** When set with clientMenuSwitch, landing is in the same shell. */
+	restaurant?: Restaurant;
+	theme?: RestaurantTheme;
+	/** SSR initial panel. Default: menu if no landing, else landing. */
+	initialView?: "landing" | "menu";
+};
+
+const { viewModel, restaurant, theme, initialView: initialViewProp } = Astro.props;
+const templateId = resolveMenuTemplateId(viewModel.activeMenu.template);
+
+const templates = {
+	classic: Classic,
+} as const;
+
+const Template = templates[templateId as keyof typeof templates] ?? Classic;
+
+const shellMode = viewModel.clientMenuSwitch && !!restaurant && !!theme;
+const initialView = initialViewProp ?? (shellMode ? "landing" : "menu");
+const showNav = viewModel.menus.length > 1;
+const showFilters =
+	viewModel.filterCategories.length > 0 || viewModel.filterTags.length > 0;
+const showHeader = showNav || showFilters;
+const basePath = `/m/${viewModel.restaurantSlug}`;
+const soleMenuId = viewModel.menus.length === 1 ? viewModel.menus[0]!.id : "";
+
+const landingMenus = viewModel.menus.map((m) => ({
+	id: m.id,
+	slug: m.slug,
+	name: m.name,
+	icon: m.icon ?? null,
+}));
+---
+
+<div
+	class="public-menu"
+	data-public-menu
+	data-base-path={basePath}
+	data-active-menu-id={viewModel.activeMenu.id}
+	data-client-menu-switch={viewModel.clientMenuSwitch ? "1" : "0"}
+	data-shell-mode={shellMode ? "1" : "0"}
+	data-view={initialView}
+	data-has-db-menus={viewModel.hasDbMenus ? "1" : "0"}
+	data-sole-menu-id={soleMenuId}
+	data-restaurant-name={viewModel.restaurant.name}
+>
+	{
+		shellMode && restaurant && theme && (
+			<div data-shell-view="landing" hidden={initialView !== "landing"}>
+				<RestaurantLanding
+					restaurant={restaurant}
+					restaurantSlug={viewModel.restaurantSlug}
+					menus={landingMenus}
+					theme={theme}
+					shellLinks
+				/>
+			</div>
+		)
+	}
+
+	<div data-shell-view="menu" hidden={shellMode && initialView !== "menu"}>
+		{
+			showHeader && (
+				<MenuHeader
+					basePath={basePath}
+					menus={viewModel.menus}
+					activeMenuId={viewModel.activeMenu.id}
+					activeMenuName={viewModel.activeMenu.name}
+					showNav={showNav}
+					showFilters={showFilters}
+					filterCategories={viewModel.filterCategories}
+					filterTags={viewModel.filterTags}
+				/>
+			)
+		}
+
+		<Template {...viewModel} />
+	</div>
+</div>
+
+<script>
+	import { bootPublicMenus } from "@/lib/client/menu";
+
+	bootPublicMenus();
+	document.addEventListener("astro:page-load", bootPublicMenus);
+</script>

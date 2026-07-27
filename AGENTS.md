@@ -123,10 +123,11 @@ erDiagram
 - **IDs:** UUID PKs; `slug` unique per restaurant where public URLs need it.
 - **Tenancy:** `owner_restaurants` (N:N). UX may assume one active restaurant; schema stays ready for more.
 - **Visibility:** no draft/publish CMS. Use simple flags (`active` / `available`) for presence/stock later.
-- **Brand / theme:** JSONB on `restaurants`:
+- Brand / theme: JSONB on `restaurants`:
   - `brand` — palette + typefaces (identity)
   - `theme` — semantic roles for the public menu (values chosen from `brand`)
-  - Parsed/validated in `lib/domain`; public layout exposes CSS variables; templates only consume vars.
+  - Parsed/validated in `lib/domain`; public layout exposes CSS variables; templates only consume vars **via Tailwind** (`text-primary`, `bg-background`, `border-border`, `rounded-lg`, …). No scoped CSS dialect for plantillas.
+- **Public plantillas (`components/menu/templates/*`):** render-only; `Props = MenuViewModel`; honor the shared `data-*` DOM contract (`components/menu/menu.md`); style with Tailwind like the rest of the app. New plantilla = domain meta + folder + one entry in PublicMenu’s template map — no new styling system.
 - **Media:** Storage paths `{restaurant_id}/…`; public URL stored on the row.
 - **Schema columns:** [docs/schema.md](./docs/schema.md) ([DIG-10](https://linear.app/cheij-lab/issue/DIG-10)).
 
@@ -210,3 +211,4 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 | 2026-07-27 | DIG-14: synthetic `seed-demo` SQL + CSV import plan docs (no Finca restore) |
 | 2026-07-27 | DIG-15 CP1 PASS: schema/RLS/db/tenancy/seed verified — see `docs/cp1.md` |
 | 2026-07-27 | DIG-22 CP2 PASS + GO Phase 3: owner `/app` feature parity — see `docs/parity-owner.md` (Resumen counts / legacy redirects as follow-ups) |
+| 2026-07-27 | Public plantillas: Tailwind only (same as `/app`); brand via CSS vars on `Menu.astro`; no scoped CSS for new templates — see Domain rules + `components/menu/menu.md` |

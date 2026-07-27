@@ -1,0 +1,68 @@
+---
+/**
+ * Multi-menu restaurant landing: logo + links to each carta.
+ */
+import MenuIcon from "@/components/app/MenuIcon.astro";
+import type { Restaurant, RestaurantTheme } from "@/lib/domain";
+
+type MenuLink = { id?: string; slug: string; name: string; icon?: string | null };
+
+type Props = {
+	restaurant: Restaurant;
+	restaurantSlug: string;
+	menus: MenuLink[];
+	theme: RestaurantTheme;
+	/** When true, links are intercepted by the public shell (pushState). */
+	shellLinks?: boolean;
+};
+
+const { restaurant, restaurantSlug, menus, theme, shellLinks = false } = Astro.props;
+const logoUrl =
+	theme.mode === "dark"
+		? (restaurant.logo_dark_url ?? restaurant.logo_light_url)
+		: (restaurant.logo_light_url ?? restaurant.logo_dark_url);
+---
+
+<article class="mx-auto max-w-md px-4 pb-12 pt-10 text-center">
+	<header class="mb-8">
+		{
+			logoUrl && (
+				<img
+					src={logoUrl}
+					alt=""
+					class="mx-auto mb-4 max-h-64 w-auto rounded-lg"
+				/>
+			)
+		}
+		<h1 class="sr-only">{restaurant.name}</h1>
+		{
+			restaurant.description && (
+				<p class="mt-2 opacity-80">{restaurant.description}</p>
+			)
+		}
+	</header>
+
+	<nav class="flex flex-col gap-3" aria-label="Menús">
+		{
+			menus.map((m) => (
+				<a
+					class="flex items-center justify-center gap-2.5 rounded-lg border border-border px-5 py-[0.85rem] text-[1.05rem] text-inherit no-underline hover:border-primary hover:text-primary"
+					href={`/m/${restaurantSlug}/${m.slug}`}
+					data-shell-open-menu={shellLinks ? "1" : undefined}
+					data-menu-id={shellLinks ? m.id : undefined}
+					data-menu-slug={shellLinks ? m.slug : undefined}
+					data-menu-name={shellLinks ? m.name : undefined}
+				>
+					<div class="flex items-center justify-start gap-3">
+						{m.icon ? (
+							<span class="inline-flex shrink-0" aria-hidden="true">
+								<MenuIcon icon={m.icon} class="size-5" />
+							</span>
+						) : null}
+						<span>{m.name}</span>
+					</div>
+				</a>
+			))
+		}
+	</nav>
+</article>

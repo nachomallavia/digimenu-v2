@@ -48,6 +48,7 @@ export {
 	FONT_OPTIONS,
 	googleFontsHref,
 	parseRestaurantTheme,
+	restaurantThemeStyle,
 	restaurantThemeToCssVars,
 	themeFromFormData,
 	type RestaurantTheme,

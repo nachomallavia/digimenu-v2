@@ -1,1 +1,6 @@
-/** Public client entrypoints for `/m/*` (Nanostores, filters). */
+export { bootPublicMenus } from "./public-menu";
+export {
+	productBelongsToMenuDom,
+	productBelongsToMenuIds,
+	type MenuBelongOpts,
+} from "./membership";

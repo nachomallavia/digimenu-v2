@@ -1,0 +1,41 @@
+---
+/**
+ * Classic plantilla category section.
+ */
+import CategoryIcon from "@/components/app/CategoryIcon.astro";
+import type { MenuSectionView } from "@/lib/server/menu";
+import ClassicProduct from "./ClassicProduct.astro";
+
+type Props = {
+	section: MenuSectionView & { hidden: boolean };
+};
+
+const { section } = Astro.props;
+---
+
+<section
+	class="mb-16"
+	id={section.slug}
+	data-section
+	data-category-id={section.id}
+	hidden={section.hidden}
+>
+	{
+		section.coverUrl && (
+			<div class="mb-2 aspect-[5/2] w-full overflow-hidden rounded-lg bg-muted/20">
+				<img
+					src={section.coverUrl}
+					alt=""
+					class="block size-full object-cover"
+				/>
+			</div>
+		)
+	}
+	<h2 class="mb-4 flex items-center gap-2 border-b border-border text-base uppercase">
+		{section.icon && <CategoryIcon icon={section.icon} class="size-[1.15rem] shrink-0" />}
+		<span>{section.label}</span>
+	</h2>
+	<ul class="m-0 flex list-none flex-col gap-8 p-0">
+		{section.products.map((item) => <ClassicProduct item={item} />)}
+	</ul>
+</section>

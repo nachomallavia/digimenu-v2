@@ -1,14 +1,64 @@
 ---
+/**
+ * Public DigiMenu chrome (customer-facing).
+ * Brand/theme CSS vars apply on `.menu-shell` (DIG-25); fonts via Tailwind arbitrary props.
+ */
 import Root from "./Root.astro";
+import {
+	DEFAULT_RESTAURANT_BRAND,
+	googleFontsHref,
+	restaurantThemeStyle,
+	type RestaurantBrand,
+	type RestaurantTheme,
+} from "@/lib/domain";
 
 interface Props {
 	title?: string;
+	description?: string | null;
+	restaurantSlug?: string | null;
+	theme?: RestaurantTheme | null;
+	brand?: RestaurantBrand | null;
 }
 
-const { title = "Menú" } = Astro.props;
+const {
+	title = "Menú",
+	description,
+	restaurantSlug,
+	theme,
+	brand,
+} = Astro.props;
+
+const resolvedBrand = brand ?? DEFAULT_RESTAURANT_BRAND;
+const themeStyle = theme ? restaurantThemeStyle(theme, resolvedBrand) : undefined;
+const fontsHref = theme ? googleFontsHref(theme, resolvedBrand) : null;
+const darkClass = theme?.mode === "dark" ? "dark" : undefined;
 ---
 
-<Root title={title}>
-	<!-- Public menu shell + brand CSS vars land in DIG-25 -->
-	<slot />
+<Root title={title} description={description ?? undefined}>
+	{
+		fontsHref && (
+			<link slot="head" rel="stylesheet" href={fontsHref} />
+		)
+	}
+
+	<div
+		class:list={[
+			"menu-shell min-h-screen bg-background text-foreground",
+			"[font-family:var(--font-body,ui-sans-serif,system-ui,sans-serif)]",
+			"[font-weight:var(--font-body-weight,400)]",
+			"[&_h1]:[font-family:var(--font-display,ui-sans-serif,system-ui,sans-serif)]",
+			"[&_h1]:[font-weight:var(--font-display-weight,600)]",
+			"[&_h2]:[font-family:var(--font-display,ui-sans-serif,system-ui,sans-serif)]",
+			"[&_h2]:[font-weight:var(--font-display-weight,600)]",
+			"[&_h3]:[font-family:var(--font-display,ui-sans-serif,system-ui,sans-serif)]",
+			"[&_h3]:[font-weight:var(--font-display-weight,600)]",
+			darkClass,
+		]}
+		data-restaurant={restaurantSlug || undefined}
+		style={themeStyle}
+	>
+		<main class="mx-auto max-w-5xl px-4 py-6">
+			<slot />
+		</main>
+	</div>
 </Root>

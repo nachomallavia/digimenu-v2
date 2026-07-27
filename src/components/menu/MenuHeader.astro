@@ -1,0 +1,229 @@
+---
+/**
+ * Public menu chrome: hamburger (nav sheet left) | active title | filter icon (sheet right).
+ * Tailwind + brand CSS vars; client toggles `.is-hidden` / `.is-active` / `aria-pressed`.
+ */
+import Menu2 from "@tabler/icons/outline/menu-2.svg";
+import FilterIcon from "@tabler/icons/outline/filter.svg";
+import CategoryIcon from "@/components/app/CategoryIcon.astro";
+import MenuIcon from "@/components/app/MenuIcon.astro";
+import { Button } from "@/components/starwind/button";
+import {
+	Sheet,
+	SheetClose,
+	SheetContent,
+	SheetFooter,
+	SheetHeader,
+	SheetTitle,
+	SheetTrigger,
+} from "@/components/starwind/sheet";
+import type { MenuSwitcherItem, MenuTagView } from "@/lib/server/menu";
+
+type Props = {
+	basePath: string;
+	menus: MenuSwitcherItem[];
+	activeMenuId: string;
+	activeMenuName: string;
+	showNav: boolean;
+	showFilters: boolean;
+	filterCategories: Array<{
+		id: string;
+		label: string;
+		icon?: string | null;
+	}>;
+	filterTags: MenuTagView[];
+};
+
+const {
+	basePath,
+	menus,
+	activeMenuId,
+	activeMenuName,
+	showNav,
+	showFilters,
+	filterCategories,
+	filterTags,
+} = Astro.props;
+
+const iconBtnClass =
+	"inline-flex size-12 cursor-pointer items-center justify-center rounded-md bg-transparent p-0 text-inherit [&.is-active]:border-primary [&.is-active]:bg-primary [&.is-active]:text-primary-foreground";
+
+const navLinkClass =
+	"flex items-center justify-center gap-2.5 rounded-lg border border-border px-5 py-[0.85rem] text-[1.05rem] text-inherit no-underline hover:border-primary hover:text-primary [&.is-active]:border-primary [&.is-active]:bg-primary [&.is-active]:text-primary-foreground";
+
+const filterChipClass =
+	"inline-flex cursor-pointer items-center gap-1.5 border border-border bg-transparent px-3 py-1.5 text-[0.85rem] text-inherit opacity-75 [font:inherit] rounded-md aria-pressed:opacity-100 aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground";
+---
+
+<header
+	class="fixed top-0 right-0 left-0 z-40 box-border w-full border-b border-border bg-background p-4 transition-[top] duration-300 ease-in-out [&.is-hidden]:-top-full [&.is-hidden]:pointer-events-none"
+	data-menu-header
+>
+	<div class="mx-auto grid w-full max-w-2xl grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-2">
+		<div class="flex min-h-11 min-w-0 items-center justify-start [&_.starwind-dialog]:contents">
+			{
+				showNav && (
+					<Sheet>
+						<SheetTrigger asChild>
+							<button type="button" class={iconBtnClass} aria-label="Menús">
+								<Menu2 class="size-5" />
+							</button>
+						</SheetTrigger>
+
+						<SheetContent side="left" class="bg-background p-0 text-foreground">
+							<SheetHeader class="border-b border-border px-4 py-3">
+								<SheetTitle>Menús</SheetTitle>
+							</SheetHeader>
+
+							<nav
+								class="flex flex-1 flex-col gap-3 overflow-y-auto p-4"
+								aria-label="Menús"
+								data-menu-switcher
+							>
+								{menus.map((m) => {
+									const active = m.id === activeMenuId;
+									return (
+										<SheetClose asChild>
+											<a
+												href={`${basePath}/${m.slug}`}
+												class:list={[navLinkClass, active && "is-active"]}
+												aria-current={active ? "page" : undefined}
+												data-menu-switch
+												data-menu-id={m.id}
+												data-menu-slug={m.slug}
+												data-menu-name={m.name}
+											>
+												<span class="flex w-full items-center justify-start gap-3">
+													{m.icon ? (
+														<span class="inline-flex shrink-0" aria-hidden="true">
+															<MenuIcon icon={m.icon} class="size-5" />
+														</span>
+													) : null}
+													<span>{m.name}</span>
+												</span>
+											</a>
+										</SheetClose>
+									);
+								})}
+							</nav>
+						</SheetContent>
+					</Sheet>
+				)
+			}
+		</div>
+
+		<h2
+			class="m-0 overflow-hidden text-center text-[1.05rem] leading-tight font-semibold text-ellipsis whitespace-nowrap"
+			data-active-menu-title
+		>
+			{activeMenuName}
+		</h2>
+
+		<div class="flex min-h-11 min-w-0 items-center justify-end [&_.starwind-dialog]:contents">
+			{
+				showFilters && (
+					<div class="public-menu-filters" data-menu-filters>
+						<Sheet>
+							<SheetTrigger asChild>
+								<button
+									type="button"
+									class={iconBtnClass}
+									aria-label="Filtros"
+									data-filter-trigger
+								>
+									<FilterIcon class="size-5" />
+								</button>
+							</SheetTrigger>
+
+							<SheetContent side="right" class="bg-background p-0 text-foreground">
+								<SheetHeader class="border-b border-border px-4 py-3">
+									<SheetTitle>Filtros</SheetTitle>
+								</SheetHeader>
+
+								<div class="flex flex-1 flex-col gap-8 overflow-y-auto px-4 pt-4 pb-5">
+									{filterCategories.length > 0 && (
+										<div class="flex flex-col gap-2" data-filter-group="category">
+											<span class="text-[0.7rem] tracking-wider uppercase opacity-65">
+												Categorías
+											</span>
+											<div
+												class="flex flex-wrap gap-2"
+												role="group"
+												aria-label="Filtrar por categoría"
+											>
+												{filterCategories.map((cat) => (
+													<button
+														type="button"
+														class={filterChipClass}
+														data-filter-kind="category"
+														data-filter-id={cat.id}
+														aria-pressed="false"
+													>
+														{cat.icon && (
+															<CategoryIcon
+																icon={cat.icon}
+																class="size-[0.9rem] shrink-0"
+															/>
+														)}
+														{cat.label}
+													</button>
+												))}
+											</div>
+										</div>
+									)}
+									{filterTags.length > 0 && (
+										<div class="flex flex-col gap-2" data-filter-group="tag">
+											<span class="text-[0.7rem] tracking-wider uppercase opacity-65">
+												Etiquetas
+											</span>
+											<div
+												class="flex flex-wrap gap-2"
+												role="group"
+												aria-label="Filtrar por etiqueta"
+											>
+												{filterTags.map((tag) => (
+													<button
+														type="button"
+														class={filterChipClass}
+														data-filter-kind="tag"
+														data-filter-id={tag.id}
+														aria-pressed="false"
+													>
+														{tag.icon && (
+															<CategoryIcon
+																icon={tag.icon}
+																class="size-[0.9rem] shrink-0"
+															/>
+														)}
+														{tag.name}
+													</button>
+												))}
+											</div>
+										</div>
+									)}
+								</div>
+
+								<SheetFooter class="border-t border-border">
+									<button
+										type="button"
+										class="cursor-pointer border-none bg-transparent p-0 py-1.5 text-left text-[0.85rem] text-primary underline [font:inherit]"
+										data-filter-clear
+										hidden
+									>
+										Limpiar filtros
+									</button>
+									<SheetClose asChild>
+										<Button type="button" class="w-full">
+											Listo
+										</Button>
+									</SheetClose>
+								</SheetFooter>
+							</SheetContent>
+						</Sheet>
+					</div>
+				)
+			}
+		</div>
+	</div>
+</header>
+<div class="mb-5 h-14" aria-hidden="true"></div>

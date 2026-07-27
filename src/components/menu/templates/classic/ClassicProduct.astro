@@ -1,0 +1,60 @@
+---
+/**
+ * Classic plantilla product row — presentation + filter data attrs for PublicMenu.
+ */
+import CategoryIcon from "@/components/app/CategoryIcon.astro";
+import type { MenuProductView } from "@/lib/server/menu";
+
+type Props = {
+	item: MenuProductView;
+};
+
+const { item } = Astro.props;
+
+const filterAttrs = {
+	"data-product": true,
+	"data-category-id": item.categoryId,
+	"data-tag-ids": item.tags.map((t) => t.id).join(" "),
+	"data-menu-ids": item.menuIds.join(" "),
+	"data-in-active-menu": item.inActiveMenu ? "1" : "0",
+};
+---
+
+<li class="flex items-start gap-4" {...filterAttrs} hidden={!item.inActiveMenu}>
+	{
+		item.imageUrl && (
+			<img
+				src={item.imageUrl}
+				alt=""
+				class="aspect-[4/5] h-auto w-16 max-w-full shrink-0 rounded-lg object-cover"
+				loading="lazy"
+			/>
+		)
+	}
+	<div class="min-w-0 flex-1">
+		<div class="flex items-baseline justify-between gap-4">
+			<h3
+				class:list={[
+					"m-0 text-[1.05rem]",
+					!item.available && "opacity-55 line-through",
+				]}
+			>
+				{item.name}
+			</h3>
+			<span class="whitespace-nowrap tabular-nums text-primary">{item.priceLabel}</span>
+		</div>
+		{item.description && <p class="mt-1 text-xs opacity-75">{item.description}</p>}
+		{
+			item.tags.length > 0 && (
+				<ul class="mt-1.5 flex list-none flex-wrap gap-1.5 p-0">
+					{item.tags.map((t) => (
+						<li class="inline-flex items-center gap-1 rounded border border-border px-1.5 py-0.5 text-[0.7rem] tracking-wide uppercase opacity-70">
+							{t.icon && <CategoryIcon icon={t.icon} class="size-[0.85rem]" />}
+							{t.name}
+						</li>
+					))}
+				</ul>
+			)
+		}
+	</div>
+</li>

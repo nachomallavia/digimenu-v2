@@ -186,6 +186,21 @@ export function restaurantThemeToCssVars(
 	};
 }
 
+/** Inline style string for `.menu-shell` (DIG-25). */
+export function restaurantThemeStyle(
+	theme: RestaurantTheme,
+	brand: RestaurantBrand = DEFAULT_RESTAURANT_BRAND,
+): string | undefined {
+	const vars = restaurantThemeToCssVars(theme, brand);
+	const parts: string[] = [];
+	for (const [key, value] of Object.entries(vars)) {
+		if (!value) continue;
+		const varName = key.startsWith("--") ? key : `--${key}`;
+		parts.push(`${varName}:${value}`);
+	}
+	return parts.length > 0 ? parts.join(";") : undefined;
+}
+
 export function googleFontsHref(
 	theme: RestaurantTheme,
 	brand: RestaurantBrand = DEFAULT_RESTAURANT_BRAND,
