@@ -35,12 +35,18 @@ Copy `.env.example` → `.env` (and mirror the same keys in Vercel).
   - Site URL: `https://digimenu-v2.vercel.app` (or `http://localhost:4321` for local-only testing)
   - Redirect allow list: `https://digimenu-v2.vercel.app/**`, `http://localhost:4321/**`
 
+### Storage (DIG-5)
+
+- Public bucket `media` — logos / productos / categorías
+- Paths + public URL format: **[docs/storage.md](./docs/storage.md)**
+- SQL: `supabase/migrations/20260727000000_storage_media_bucket.sql`
+
 ## Roadmap
 
 Tracked in Linear: [DigiMenu v2](https://linear.app/cheij-lab/project/digimenu-v2-0a84b080f200).
 
 1. **Alpha** — repo + `AGENTS.md` ✅
-2. **Phase 0** — bootstrap (scaffold ✅ DIG-4, auth DIG-3, storage, deploy)
+2. **Phase 0** — bootstrap (scaffold ✅ DIG-4, auth DIG-3, deploy DIG-6, storage DIG-5)
 3. **Phase 1** — domain + RLS
 4. **Phase 2** — owner `/app` parity
 5. **Phase 3** — public `/m/*` parity
