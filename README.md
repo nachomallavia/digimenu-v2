@@ -51,6 +51,11 @@ Copy `.env.example` → `.env` (and mirror the same keys in Vercel).
 - Ownership policies: **[docs/rls.md](./docs/rls.md)**
 - SQL: `supabase/migrations/20260727020000_domain_rls.sql`
 
+### Data access (DIG-12)
+
+- Domain types: `src/lib/domain`
+- Queries/mutations: `src/lib/server/db` — see `src/lib/server/db/db.md`
+
 ### EmDash backup (DIG-8)
 
 - Inventory + row counts: **[docs/emdash-backup.md](./docs/emdash-backup.md)**
@@ -74,7 +79,7 @@ Tracked in Linear: [DigiMenu v2](https://linear.app/cheij-lab/project/digimenu-v
 
 1. **Alpha** — repo + `AGENTS.md` ✅
 2. **Phase 0** — bootstrap ✅ (DIG-3–7; DIG-8 backup docs)
-3. **Phase 1** — domain + RLS (schema ✅ DIG-10, RLS ✅ DIG-11)
+3. **Phase 1** — domain + RLS (schema ✅ DIG-10, RLS ✅ DIG-11, db ✅ DIG-12)
 4. **Phase 2** — owner `/app` parity
 5. **Phase 3** — public `/m/*` parity
 6. **Phase 4** — onboarding, OAuth, domains, templates

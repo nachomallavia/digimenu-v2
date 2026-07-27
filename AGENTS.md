@@ -205,3 +205,4 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 | 2026-07-26 | Stack: Nanostores for `lib/client` state; legacy path locked to `/Users/ignaciomallaviabarrena/Documents/programacion/digimenu` |
 | 2026-07-27 | DIG-10: DB tables/columns English (`restaurants`, `menu_products`, …); CSV ES↔EN in import/export; `price numeric(12,2)`; flags `active`/`available`; see `docs/schema.md` |
 | 2026-07-27 | DIG-11: RLS via `owner_restaurants` + `is_restaurant_owner()`; anon reads active public rows; client restaurant INSERT deferred to DIG-27; see `docs/rls.md` |
+| 2026-07-27 | DIG-12: `lib/domain` row types + `lib/server/db` CRUD/junctions over SSR Supabase client; no EmDash |

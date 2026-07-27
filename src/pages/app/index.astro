@@ -3,6 +3,7 @@ import { actions } from "astro:actions";
 import { Button } from "@/components/starwind/button";
 import Dashboard from "@/layouts/Dashboard.astro";
 import { requireUser } from "@/lib/server/auth";
+import { listRestaurantsForUser } from "@/lib/server/db";
 
 const signOutResult = Astro.getActionResult(actions.auth.signOut);
 if (signOutResult && !signOutResult.error) {
@@ -12,6 +13,8 @@ if (signOutResult && !signOutResult.error) {
 const auth = await requireUser(Astro);
 if (auth instanceof Response) return auth;
 const user = auth;
+
+const restaurants = await listRestaurantsForUser(Astro.locals.supabase, user.id);
 ---
 
 <Dashboard title="DigiMenu — App">
@@ -22,9 +25,20 @@ const user = auth;
 				<p class="text-muted-foreground">
 					Sesión activa como <span class="text-foreground font-medium">{user.email}</span>.
 				</p>
-				<p class="text-muted-foreground text-sm">
-					CRUD y tenancy llegan en Phase 1–2. Auth magic link: DIG-3.
-				</p>
+				{
+					restaurants.length === 0 ? (
+						<p class="text-muted-foreground text-sm">
+							Sin restaurants vinculados — tenancy/cookie en DIG-13.
+						</p>
+					) : (
+						<p class="text-muted-foreground text-sm">
+							{restaurants.length} restaurant{restaurants.length === 1 ? "" : "s"}:{" "}
+							<span class="text-foreground font-medium">
+								{restaurants.map((r) => r.name).join(", ")}
+							</span>
+						</p>
+					)
+				}
 			</div>
 
 			<form method="POST" action={actions.auth.signOut}>
