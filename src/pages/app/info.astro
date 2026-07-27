@@ -1,7 +1,29 @@
 ---
 import { actions } from "astro:actions";
 import Dashboard from "@/layouts/Dashboard.astro";
+import LogoUploadField from "@/components/app/LogoUploadField.astro";
+import BrandColorRow from "@/components/app/BrandColorRow.astro";
+import BrandFontRow from "@/components/app/BrandFontRow.astro";
+import RestaurantThemePanel from "@/components/app/RestaurantThemePanel.astro";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+import { Textarea } from "@/components/starwind/textarea";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/starwind/card";
+import {
+	parseRestaurantBrand,
+	parseRestaurantTheme,
+	pickBrandFontEtiqueta,
+	pickBrandHex,
+} from "@/lib/domain";
 import { requireOwner } from "@/lib/server/auth";
+import { getRestaurantById } from "@/lib/server/db";
 
 const signOutResult = Astro.getActionResult(actions.auth.signOut);
 if (signOutResult && !signOutResult.error) {
@@ -10,17 +32,218 @@ if (signOutResult && !signOutResult.error) {
 
 const auth = await requireOwner(Astro);
 if (auth instanceof Response) return auth;
-const { restaurant, email } = auth;
+const { restaurant: ownerRestaurant, email } = auth;
+
+const basicsResult = Astro.getActionResult(actions.restaurant.updateBasics);
+const brandThemeResult = Astro.getActionResult(actions.restaurant.updateBrandTheme);
+const uploadLogoResult = Astro.getActionResult(actions.restaurant.uploadLogo);
+const removeLogoResult = Astro.getActionResult(actions.restaurant.removeLogo);
+
+const actionError =
+	basicsResult?.error?.message ??
+	brandThemeResult?.error?.message ??
+	uploadLogoResult?.error?.message ??
+	removeLogoResult?.error?.message ??
+	null;
+
+const savedSection =
+	(basicsResult && !basicsResult.error && "basics") ||
+	(brandThemeResult &&
+		!brandThemeResult.error &&
+		brandThemeResult.data.section) ||
+	(uploadLogoResult && !uploadLogoResult.error && "logos") ||
+	(removeLogoResult && !removeLogoResult.error && "logos") ||
+	null;
+
+const row = await getRestaurantById(Astro.locals.supabase, ownerRestaurant.id);
+if (!row) {
+	return Astro.redirect("/app/pending?error=lookup");
+}
+
+const brand = parseRestaurantBrand(row.brand);
+const theme = parseRestaurantTheme(row.theme);
+
+const colorRoles = [
+	{ name: "primary", label: "Primario", value: pickBrandHex(brand, theme.primary, 0) },
+	{ name: "background", label: "Fondo", value: pickBrandHex(brand, theme.background, 1) },
+	{ name: "foreground", label: "Texto", value: pickBrandHex(brand, theme.foreground, 2) },
+	{ name: "muted", label: "Texto suave", value: pickBrandHex(brand, theme.muted, 3) },
+	{ name: "border", label: "Bordes", value: pickBrandHex(brand, theme.border, 4) },
+] as const;
+
+const fontDisplayValue = pickBrandFontEtiqueta(brand, theme.fontDisplay, 0);
+const fontBodyValue = pickBrandFontEtiqueta(brand, theme.fontBody, 0);
+
+const savedMessage =
+	savedSection === "basics"
+		? "Datos guardados."
+		: savedSection === "brand"
+			? "Identidad de marca guardada."
+			: savedSection === "theme"
+				? "Tema guardado."
+				: savedSection === "logos"
+					? "Logos actualizados."
+					: null;
 ---
 
 <Dashboard
-	title="DigiMenu — Restaurant"
+	title="DigiMenu — Info"
 	email={email}
-	restaurantSlug={restaurant.slug}
-	restaurantName={restaurant.name}
+	restaurantSlug={row.slug}
+	restaurantName={row.name}
 >
-	<div class="mx-auto flex max-w-4xl flex-col gap-2">
-		<h1 class="text-2xl font-semibold tracking-tight">Restaurant</h1>
-		<p class="text-muted-foreground">Próximamente — edición de datos del restaurante.</p>
+	<div class="mx-auto flex max-w-2xl flex-col gap-6">
+		<div>
+			<h1 class="text-2xl font-semibold tracking-tight">Info restaurante</h1>
+			<p class="text-muted-foreground">
+				Datos del local, logos e identidad de marca (paleta, tipografías y tema) para todas las
+				cartas.
+			</p>
+		</div>
+
+		{
+			savedMessage && (
+				<p class="rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success-foreground">
+					{savedMessage}
+				</p>
+			)
+		}
+		{actionError && <p class="text-sm text-error-foreground" role="alert">{actionError}</p>}
+
+		<Card>
+			<CardHeader>
+				<CardTitle>Datos básicos</CardTitle>
+				<CardDescription>Estos datos aparecen en el encabezado del menú público.</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<form
+					method="POST"
+					action={actions.restaurant.updateBasics}
+					class="flex flex-col gap-4"
+				>
+					<div class="flex flex-col gap-1.5">
+						<Label for="name">Nombre</Label>
+						<Input id="name" name="name" required value={row.name} />
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<Label for="description">Descripción</Label>
+						<Textarea
+							id="description"
+							name="description"
+							rows={4}
+							value={row.description ?? ""}
+						/>
+					</div>
+					<div>
+						<Button type="submit" variant="primary">Guardar datos</Button>
+					</div>
+				</form>
+			</CardContent>
+		</Card>
+
+		<Card id="logos">
+			<CardHeader>
+				<CardTitle>Logos</CardTitle>
+				<CardDescription>
+					Imágenes en Storage (<code>media</code>). Si solo subís uno, se usa ese en ambos modos
+					del menú.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<div class="grid gap-6 sm:grid-cols-2" data-logo-previews>
+					<LogoUploadField
+						mode="light"
+						src={row.logo_light_url}
+						alt={`${row.name} (claro)`}
+					/>
+					<LogoUploadField
+						mode="dark"
+						src={row.logo_dark_url}
+						alt={`${row.name} (oscuro)`}
+					/>
+				</div>
+			</CardContent>
+		</Card>
+
+		<Card id="marca">
+			<CardHeader>
+				<CardTitle>Identidad de marca</CardTitle>
+				<CardDescription>
+					Paleta y tipografías del manual de marca. El tema público solo puede elegir entre estos
+					valores.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<form
+					method="POST"
+					action={actions.restaurant.updateBrandTheme}
+					class="flex flex-col gap-6"
+					data-brand-form
+				>
+					<input type="hidden" name="part" value="brand" />
+
+					<section class="flex flex-col gap-3">
+						<div class="flex items-center justify-between gap-2">
+							<h3 class="text-sm font-medium">Paleta de colores</h3>
+							<Button type="button" variant="outline" size="sm" data-brand-add-color>
+								Añadir color
+							</Button>
+						</div>
+						<ul class="flex flex-col gap-2" data-brand-colors>
+							{brand.colors.map((c) => (
+								<BrandColorRow hex={c.hex} nombre={c.nombre} />
+							))}
+						</ul>
+					</section>
+
+					<section class="flex flex-col gap-3">
+						<div class="flex items-center justify-between gap-2">
+							<h3 class="text-sm font-medium">Tipografías</h3>
+							<Button type="button" variant="outline" size="sm" data-brand-add-font>
+								Añadir tipografía
+							</Button>
+						</div>
+						<ul class="flex flex-col gap-3" data-brand-fonts>
+							{brand.fonts.map((f) => (
+								<BrandFontRow family={f.family} weight={f.weight} etiqueta={f.etiqueta} />
+							))}
+						</ul>
+					</section>
+
+					<div>
+						<Button type="submit" variant="primary">Guardar identidad</Button>
+					</div>
+				</form>
+			</CardContent>
+		</Card>
+
+		<RestaurantThemePanel
+			brand={brand}
+			theme={theme}
+			colorRoles={colorRoles}
+			fontDisplayValue={fontDisplayValue}
+			fontBodyValue={fontBodyValue}
+			restaurantSlug={row.slug}
+		/>
 	</div>
 </Dashboard>
+
+<template id="brand-color-row-template">
+	<BrandColorRow template />
+</template>
+
+<template id="brand-font-row-template">
+	<BrandFontRow template />
+</template>
+
+<script>
+	import { bindBrandForm, bindLogoPreviews } from "@/lib/client/owner";
+
+	function boot() {
+		bindLogoPreviews();
+		bindBrandForm();
+	}
+
+	boot();
+	document.addEventListener("astro:page-load", boot);
+</script>

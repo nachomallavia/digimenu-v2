@@ -1,0 +1,66 @@
+---
+import { actions } from "astro:actions";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+
+interface Props {
+	mode: "light" | "dark";
+	src: string | null;
+	alt: string;
+}
+
+const { mode, src, alt } = Astro.props;
+const field = mode === "light" ? "logo_light" : "logo_dark";
+const label = mode === "light" ? "Logo (fondo claro)" : "Logo (fondo oscuro)";
+const removeLabel = mode === "light" ? "Quitar logo claro" : "Quitar logo oscuro";
+const previewBg = mode === "light" ? "bg-white" : "bg-neutral-900";
+---
+
+<div class="flex flex-col gap-3" data-logo-field={field}>
+	<Label for={field}>{label}</Label>
+	<img
+		data-logo-preview={field}
+		src={src ?? ""}
+		alt={alt}
+		class:list={[
+			"h-20 w-auto max-w-full rounded-md border border-border object-contain p-2",
+			previewBg,
+			!src && "hidden",
+		]}
+	/>
+	<form
+		method="POST"
+		action={actions.restaurant.uploadLogo}
+		enctype="multipart/form-data"
+		class="flex flex-col gap-2"
+	>
+		<input type="hidden" name="mode" value={mode} />
+		<Input
+			id={field}
+			name="file"
+			type="file"
+			accept="image/jpeg,image/png,image/webp,image/gif"
+			required
+			data-logo-input={field}
+		/>
+		<div>
+			<Button type="submit" variant="outline" size="sm">Subir logo</Button>
+		</div>
+	</form>
+	{
+		src && (
+			<form
+				method="POST"
+				action={actions.restaurant.removeLogo}
+				class="flex"
+				data-logo-remove={field}
+			>
+				<input type="hidden" name="mode" value={mode} />
+				<Button type="submit" variant="ghost" size="sm">
+					{removeLabel}
+				</Button>
+			</form>
+		)
+	}
+</div>

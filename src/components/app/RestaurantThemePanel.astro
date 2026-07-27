@@ -1,0 +1,170 @@
+---
+/**
+ * Owner restaurant theme roles: mode, palette roles from brand, fonts, radius.
+ */
+import type { RestaurantBrand, RestaurantTheme } from "@/lib/domain";
+import { actions } from "astro:actions";
+import { Button } from "@/components/starwind/button";
+import { Label } from "@/components/starwind/label";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/starwind/card";
+
+type ColorRole = {
+	name: string;
+	label: string;
+	value: string;
+};
+
+type Props = {
+	brand: RestaurantBrand;
+	theme: RestaurantTheme;
+	colorRoles: readonly ColorRole[];
+	fontDisplayValue: string;
+	fontBodyValue: string;
+	restaurantSlug: string;
+};
+
+const {
+	brand,
+	theme,
+	colorRoles,
+	fontDisplayValue,
+	fontBodyValue,
+	restaurantSlug,
+} = Astro.props;
+---
+
+<Card id="tema">
+	<CardHeader>
+		<CardTitle>Tema público</CardTitle>
+		<CardDescription>
+			Asigná roles visuales usando solo la{" "}
+			<a href="#marca" class="text-primary underline-offset-2 hover:underline">
+				identidad de marca
+			</a>
+			. Aplica a <code>/m/{restaurantSlug}</code>.
+		</CardDescription>
+	</CardHeader>
+	<CardContent>
+		{
+			brand.colors.length === 0 || brand.fonts.length === 0 ? (
+				<p class="text-sm text-muted-foreground">
+					Definí al menos un color y una tipografía en{" "}
+					<a href="#marca" class="text-primary underline-offset-2 hover:underline">
+						Identidad de marca
+					</a>{" "}
+					antes de configurar el tema.
+				</p>
+			) : (
+				<form
+					method="POST"
+					action={actions.restaurant.updateBrandTheme}
+					class="flex flex-col gap-5"
+				>
+					<input type="hidden" name="part" value="theme" />
+					<fieldset class="flex flex-col gap-2">
+						<Label>Modo base</Label>
+						<div class="flex gap-4">
+							<label class="flex items-center gap-2 text-sm">
+								<input
+									type="radio"
+									name="mode"
+									value="light"
+									checked={theme.mode === "light"}
+								/>
+								Claro
+							</label>
+							<label class="flex items-center gap-2 text-sm">
+								<input
+									type="radio"
+									name="mode"
+									value="dark"
+									checked={theme.mode === "dark"}
+								/>
+								Oscuro
+							</label>
+						</div>
+					</fieldset>
+
+					<div class="grid gap-4 sm:grid-cols-2">
+						{colorRoles.map((field) => (
+							<div class="flex flex-col gap-1.5">
+								<Label for={field.name}>{field.label}</Label>
+								<select
+									id={field.name}
+									name={field.name}
+									class="border-input bg-background h-11 rounded-md border px-3 text-sm"
+								>
+									{brand.colors.map((c) => (
+										<option value={c.hex} selected={field.value === c.hex}>
+											{c.nombre} ({c.hex})
+										</option>
+									))}
+								</select>
+							</div>
+						))}
+					</div>
+
+					<div class="grid gap-4 sm:grid-cols-2">
+						<div class="flex flex-col gap-1.5">
+							<Label for="fontDisplay">Tipografía títulos</Label>
+							<select
+								id="fontDisplay"
+								name="fontDisplay"
+								class="border-input bg-background h-11 rounded-md border px-3 text-sm"
+							>
+								{brand.fonts.map((f) => (
+									<option value={f.etiqueta} selected={fontDisplayValue === f.etiqueta}>
+										{f.etiqueta} ({f.weight})
+									</option>
+								))}
+							</select>
+						</div>
+						<div class="flex flex-col gap-1.5">
+							<Label for="fontBody">Tipografía cuerpo</Label>
+							<select
+								id="fontBody"
+								name="fontBody"
+								class="border-input bg-background h-11 rounded-md border px-3 text-sm"
+							>
+								{brand.fonts.map((f) => (
+									<option value={f.etiqueta} selected={fontBodyValue === f.etiqueta}>
+										{f.etiqueta} ({f.weight})
+									</option>
+								))}
+							</select>
+						</div>
+					</div>
+
+					<fieldset class="flex flex-col gap-2">
+						<Label>Redondeo</Label>
+						<div class="flex flex-wrap gap-3">
+							{(["none", "sm", "md", "lg"] as const).map((r) => (
+								<label class="flex items-center gap-2 text-sm">
+									<input
+										type="radio"
+										name="radius"
+										value={r}
+										checked={theme.radius === r}
+									/>
+									{r}
+								</label>
+							))}
+						</div>
+					</fieldset>
+
+					<div>
+						<Button type="submit" variant="primary">
+							Guardar tema
+						</Button>
+					</div>
+				</form>
+			)
+		}
+	</CardContent>
+</Card>

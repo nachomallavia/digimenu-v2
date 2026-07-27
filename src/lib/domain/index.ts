@@ -28,3 +28,29 @@ export {
 } from "./color-mode";
 
 export { slugFromName, slugify } from "./slug";
+
+export {
+	DEFAULT_RESTAURANT_BRAND,
+	brandFontByEtiqueta,
+	brandFromFormData,
+	brandHasColor,
+	normalizeHex,
+	parseRestaurantBrand,
+	pickBrandFontEtiqueta,
+	pickBrandHex,
+	type BrandColor,
+	type BrandFont,
+	type RestaurantBrand,
+} from "./restaurant-brand";
+
+export {
+	DEFAULT_RESTAURANT_THEME,
+	FONT_OPTIONS,
+	googleFontsHref,
+	parseRestaurantTheme,
+	restaurantThemeToCssVars,
+	themeFromFormData,
+	type RestaurantTheme,
+	type ThemeMode,
+	type ThemeRadius,
+} from "./restaurant-theme";

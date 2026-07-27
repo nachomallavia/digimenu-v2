@@ -1,0 +1,93 @@
+---
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+
+interface Props {
+	hex?: string;
+	nombre?: string;
+	/**
+	 * Plain HTML for `<template>` cloning (no Starwind).
+	 * Defaults match the add-color template row.
+	 */
+	template?: boolean;
+}
+
+const { hex = "#888888", nombre = "", template = false } = Astro.props;
+---
+
+{
+	template ? (
+		<li class="grid grid-cols-[auto_1fr_1fr_auto] items-end gap-2" data-brand-color-row>
+			<input
+				type="color"
+				value={hex}
+				class="size-10 cursor-pointer rounded border border-border bg-transparent p-0.5"
+				data-brand-color-swatch
+				aria-label="Muestra de color"
+			/>
+			<div class="flex flex-col gap-1">
+				<label class="text-xs text-muted-foreground">Hex</label>
+				<input
+					name="color_hex"
+					value={hex}
+					pattern="#[0-9A-Fa-f]{6}"
+					required
+					class="border-input bg-background h-10 w-full rounded-md border px-3 text-sm"
+					data-brand-color-hex
+				/>
+			</div>
+			<div class="flex flex-col gap-1">
+				<label class="text-xs text-muted-foreground">Nombre</label>
+				<input
+					name="color_nombre"
+					value={nombre}
+					required
+					class="border-input bg-background h-10 w-full rounded-md border px-3 text-sm"
+					placeholder="Nombre"
+				/>
+			</div>
+			<button
+				type="button"
+				data-brand-remove-row
+				aria-label="Quitar color"
+				class="hover:bg-accent inline-flex h-9 items-center rounded-md px-3 text-sm"
+			>
+				Quitar
+			</button>
+		</li>
+	) : (
+		<li class="grid grid-cols-[auto_1fr_1fr_auto] items-end gap-2" data-brand-color-row>
+			<input
+				type="color"
+				value={hex}
+				class="size-10 cursor-pointer rounded border border-border bg-transparent p-0.5"
+				data-brand-color-swatch
+				aria-label={`Muestra ${nombre}`}
+			/>
+			<div class="flex flex-col gap-1">
+				<Label class="text-xs text-muted-foreground">Hex</Label>
+				<Input
+					name="color_hex"
+					value={hex}
+					pattern="#[0-9A-Fa-f]{6}"
+					required
+					data-brand-color-hex
+				/>
+			</div>
+			<div class="flex flex-col gap-1">
+				<Label class="text-xs text-muted-foreground">Nombre</Label>
+				<Input name="color_nombre" value={nombre} required />
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				data-brand-remove-row
+				aria-label="Quitar color"
+			>
+				Quitar
+			</Button>
+		</li>
+	)
+}

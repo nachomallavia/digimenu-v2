@@ -1,0 +1,98 @@
+---
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+
+interface Props {
+	family?: string;
+	weight?: string;
+	etiqueta?: string;
+	/**
+	 * Plain HTML for `<template>` cloning (no Starwind).
+	 * Defaults match the add-font template row.
+	 */
+	template?: boolean;
+}
+
+const { family = "", weight = "400", etiqueta = "", template = false } = Astro.props;
+---
+
+{
+	template ? (
+		<li
+			class="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-[1fr_6rem_1fr_auto] sm:items-end"
+			data-brand-font-row
+		>
+			<div class="flex flex-col gap-1">
+				<label class="text-xs text-muted-foreground">Familia CSS</label>
+				<input
+					name="font_family"
+					value={family}
+					required
+					class="border-input bg-background h-10 w-full rounded-md border px-3 text-sm"
+					placeholder='"DM Sans", sans-serif'
+				/>
+			</div>
+			<div class="flex flex-col gap-1">
+				<label class="text-xs text-muted-foreground">Peso</label>
+				<input
+					name="font_weight"
+					value={weight}
+					required
+					class="border-input bg-background h-10 w-full rounded-md border px-3 text-sm"
+					placeholder="400"
+				/>
+			</div>
+			<div class="flex flex-col gap-1">
+				<label class="text-xs text-muted-foreground">Etiqueta</label>
+				<input
+					name="font_etiqueta"
+					value={etiqueta}
+					required
+					class="border-input bg-background h-10 w-full rounded-md border px-3 text-sm"
+					placeholder="DM Sans"
+				/>
+			</div>
+			<button
+				type="button"
+				data-brand-remove-row
+				aria-label="Quitar tipografía"
+				class="hover:bg-accent inline-flex h-9 items-center rounded-md px-3 text-sm"
+			>
+				Quitar
+			</button>
+		</li>
+	) : (
+		<li
+			class="grid gap-2 rounded-md border border-border p-3 sm:grid-cols-[1fr_6rem_1fr_auto] sm:items-end"
+			data-brand-font-row
+		>
+			<div class="flex flex-col gap-1">
+				<Label class="text-xs text-muted-foreground">Familia CSS</Label>
+				<Input
+					name="font_family"
+					value={family}
+					required
+					placeholder='"DM Sans", sans-serif'
+				/>
+			</div>
+			<div class="flex flex-col gap-1">
+				<Label class="text-xs text-muted-foreground">Peso</Label>
+				<Input name="font_weight" value={weight} required placeholder="400" />
+			</div>
+			<div class="flex flex-col gap-1">
+				<Label class="text-xs text-muted-foreground">Etiqueta</Label>
+				<Input name="font_etiqueta" value={etiqueta} required placeholder="DM Sans" />
+			</div>
+			<Button
+				type="button"
+				variant="ghost"
+				size="sm"
+				data-brand-remove-row
+				aria-label="Quitar tipografía"
+			>
+				Quitar
+			</Button>
+		</li>
+	)
+}

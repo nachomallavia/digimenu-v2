@@ -6,7 +6,14 @@ Pure types and helpers (no I/O): brand/theme parsers, shared domain shapes.
 
 [`types.ts`](./types.ts) — row shapes for Postgres English schema (`Restaurant`, `Menu`, `Category`, `Tag`, `Product`, junctions, Insert/Update patches). See [docs/schema.md](../../../docs/schema.md).
 
-Brand/theme JSON parsers land when owner brand UI needs them (DIG-17). Keep this module free of Supabase and request APIs.
+## Brand / theme (DIG-17)
+
+| Module | Role |
+|--------|------|
+| [`restaurant-brand.ts`](./restaurant-brand.ts) | Palette + typefaces (`parseRestaurantBrand`, `brandFromFormData`, pick helpers) |
+| [`restaurant-theme.ts`](./restaurant-theme.ts) | Semantic public-menu roles from brand (`parseRestaurantTheme`, `themeFromFormData`, CSS var map) |
+
+`restaurants.brand` / `restaurants.theme` are JSONB; parsers normalize unknown JSON to defaults. Keep this module free of Supabase and request APIs.
 
 ## Color mode (DIG-16)
 
