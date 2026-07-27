@@ -20,7 +20,7 @@ flowchart LR
 | Not cached | `/app/**`, `/`, auth, Actions |
 | Freshness | `maxAge: 60`, `swr: 3600` (1 min fresh, then stale-while-revalidate up to 1 h) |
 | Tags | `restaurant:{restaurantId}` (UUID) on every successful public menu response |
-| Invalidation | Soft (stale + background revalidate) via `Astro.cache.invalidate({ tags })` |
+| Invalidation | Soft (stale + background revalidate) via `Astro.cache.invalidate({ tags })`. Asset URLs must change on replace (`uploadMedia` unique paths) — same-path upsert keeps CDN/browser image bytes stale even after HTML revalidates. |
 | Dev | `Astro.cache.enabled === false` locally — tagging and invalidate are no-ops |
 
 **Not used:** Cloudflare Cache API, in-process menu catalog cache (v1 `public-menu-cache.ts` is not ported), path purge alone (exact-match only; tags cover landing + all menu URLs).

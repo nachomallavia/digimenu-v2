@@ -41,7 +41,9 @@ export function mediaPathFromPublicUrl(publicUrl: string | null | undefined): st
 	const marker = `/storage/v1/object/public/${MEDIA_BUCKET}/`;
 	const idx = publicUrl.indexOf(marker);
 	if (idx === -1) return null;
-	return publicUrl.slice(idx + marker.length) || null;
+	const rest = publicUrl.slice(idx + marker.length);
+	const path = rest.split("?")[0]?.split("#")[0] ?? "";
+	return path || null;
 }
 
 export type UploadMediaInput = {
@@ -53,7 +55,9 @@ export type UploadMediaInput = {
 };
 
 /**
- * Upload an image to `media/{restaurant_id}/{kind}/{stem}.{ext}`.
+ * Upload an image to `media/{restaurant_id}/{kind}/{stem}-{id}.{ext}`.
+ * Stem is always uniquified so replaces get a new public URL (avoids CDN/browser
+ * serving a stale object at the same path after upsert).
  * Returns the public URL to store on the row.
  */
 export async function uploadMedia(
@@ -73,13 +77,15 @@ export async function uploadMedia(
 	}
 
 	const ext = extensionForMime(file.type);
-	const safeStem = (stem?.trim() || crypto.randomUUID()).replace(/[^a-zA-Z0-9_-]/g, "");
-	const path = `${restaurantId}/${kind}/${safeStem}.${ext}`;
+	const baseStem = (stem?.trim() || crypto.randomUUID()).replace(/[^a-zA-Z0-9_-]/g, "");
+	const uniqueStem = `${baseStem || "img"}-${crypto.randomUUID().slice(0, 8)}`;
+	const path = `${restaurantId}/${kind}/${uniqueStem}.${ext}`;
 
 	const buffer = new Uint8Array(await file.arrayBuffer());
 	const { error } = await supabase.storage.from(MEDIA_BUCKET).upload(path, buffer, {
 		contentType: file.type,
-		upsert: true,
+		upsert: false,
+		cacheControl: "31536000",
 	});
 
 	if (error) {

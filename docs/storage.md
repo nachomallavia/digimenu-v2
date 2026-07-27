@@ -10,6 +10,7 @@ A **bucket** is a named file container in Supabase Storage. DigiMenu uses one pu
 
 - **Public** means anyone with the object URL can **download** it (good for `/m` menus).
 - Uploads, updates, and deletes still require RLS. Phase 0 stub: any **authenticated** user may write to `media`. Phase 1 will restrict writes to owners of `{restaurant_id}` via `owner_restaurants`.
+- **`uploadMedia`** writes a **unique** object path (`{stem}-{id}.{ext}`) so each replace gets a new public URL. Old objects are removed via `removeMediaByPublicUrl` when the row URL changes. Stable-path upsert was abandoned because browsers/CDNs kept serving the previous bytes at the same URL.
 
 ## Path convention
 
@@ -19,7 +20,7 @@ A **bucket** is a named file container in Supabase Storage. DigiMenu uses one pu
 {restaurant_id}/categories/{filename}
 ```
 
-Example: `a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/logos/light.webp`
+Example: `a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/logos/light-a1b2c3d4.webp`
 
 Limits (bucket): max **5 MiB**; MIME `image/jpeg`, `image/png`, `image/webp`, `image/gif`.
 
@@ -39,10 +40,14 @@ Store that full URL on the DB row. App helpers: [`lib/server/owner/media.ts`](..
 
 ## Migration
 
-Source of truth: [`supabase/migrations/20260727000000_storage_media_bucket.sql`](../supabase/migrations/20260727000000_storage_media_bucket.sql)
+Source of truth:
 
-Creates/updates the bucket and policies:
+- [`supabase/migrations/20260727000000_storage_media_bucket.sql`](../supabase/migrations/20260727000000_storage_media_bucket.sql) — bucket + insert/update/delete
+- [`supabase/migrations/20260727165000_storage_media_select.sql`](../supabase/migrations/20260727165000_storage_media_select.sql) — SELECT for authenticated upserts
 
+Policies:
+
+- `media_authenticated_select`
 - `media_authenticated_insert`
 - `media_authenticated_update`
 - `media_authenticated_delete`
