@@ -15,6 +15,20 @@ export async function listMenuProducts(
 	return (data ?? []) as MenuProduct[];
 }
 
+/** All menu↔product rows for a restaurant (public loader membership map). */
+export async function listMenuProductsByRestaurant(
+	supabase: SupabaseClient,
+	restaurantId: string,
+): Promise<MenuProduct[]> {
+	const { data, error } = await supabase
+		.from("menu_products")
+		.select("*")
+		.eq("restaurant_id", restaurantId)
+		.order("sort_order", { ascending: true });
+	throwOnError(error, "Failed to list restaurant menu products");
+	return (data ?? []) as MenuProduct[];
+}
+
 /** Menus that include a product (for owner detail membership UI). */
 export async function listMenuProductsByProduct(
 	supabase: SupabaseClient,

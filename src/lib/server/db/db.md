@@ -24,7 +24,7 @@ const menus = await listMenusByRestaurant(Astro.locals.supabase, restaurantId);
 | Categories | `listCategoriesByRestaurant`, `getCategoryById`, `getCategoryBySlug`, `createCategory`, `updateCategory`, `deleteCategory` |
 | Tags | `listTagsByRestaurant`, `getTagById`, `getTagBySlug`, `createTag`, `updateTag`, `deleteTag` |
 | Products | `listProductsByRestaurant`, `getProductById`, `getProductBySlug`, `createProduct`, `updateProduct`, `deleteProduct` |
-| Junctions | `listMenuProducts`, `listMenuProductsByProduct`, `setMenuProducts`, `listProductTags`, `listProductTagsByRestaurant`, `setProductTags` |
+| Junctions | `listMenuProducts`, `listMenuProductsByRestaurant`, `listMenuProductsByProduct`, `setMenuProducts`, `listProductTags`, `listProductTagsByRestaurant`, `setProductTags` |
 | Ownership | `listOwnerRestaurantIds`, `listRestaurantsForUser` |
 
 Re-export barrel: [`index.ts`](./index.ts).

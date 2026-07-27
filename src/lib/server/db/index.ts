@@ -46,6 +46,7 @@ export {
 export {
 	listMenuProducts,
 	listMenuProductsByProduct,
+	listMenuProductsByRestaurant,
 	setMenuProducts,
 } from "./menu-products";
 export {

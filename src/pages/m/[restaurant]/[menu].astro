@@ -1,0 +1,107 @@
+---
+/**
+ * Direct menu route `/m/{restaurant}/{menu}`.
+ * Classic template UI arrives in DIG-24 — this page proves SSR loader + view-model.
+ */
+import Menu from "@/layouts/Menu.astro";
+import {
+	isPreparedPublicMenuPage,
+	preparePublicMenuPage,
+} from "@/lib/server/menu";
+
+const menuSlug = Astro.params.menu;
+const prepared = await preparePublicMenuPage(Astro, {
+	menuSlug,
+	initialView: "menu",
+});
+if (!isPreparedPublicMenuPage(prepared)) {
+	return prepared;
+}
+
+const { viewModel, title } = prepared;
+const activeProducts = viewModel.products.filter((p) => p.inActiveMenu);
+---
+
+<Menu title={title}>
+	<main class="mx-auto flex max-w-2xl flex-col gap-6 px-6 py-12">
+		<header class="flex flex-col gap-2">
+			{
+				viewModel.menus.length > 1 && (
+					<p class="text-sm">
+						<a
+							href={`/m/${viewModel.restaurantSlug}`}
+							class="text-muted-foreground hover:text-foreground"
+						>
+							← {viewModel.restaurant.name}
+						</a>
+					</p>
+				)
+			}
+			{
+				viewModel.restaurant.logoUrl && (
+					<img
+						src={viewModel.restaurant.logoUrl}
+						alt=""
+						class="h-12 w-auto max-w-[10rem] object-contain"
+					/>
+				)
+			}
+			<h1 class="text-3xl font-semibold tracking-tight">{viewModel.activeMenu.name}</h1>
+			<p class="text-sm text-muted-foreground">
+				{viewModel.restaurant.name}
+				<span class="text-muted-foreground/80"> · </span>
+				{activeProducts.length} productos
+			</p>
+		</header>
+
+		{
+			viewModel.menus.length > 1 && (
+				<nav class="flex flex-wrap gap-2" aria-label="Menús">
+					{viewModel.menus.map((m) => (
+						<a
+							href={`/m/${viewModel.restaurantSlug}/${m.slug}`}
+							class:list={[
+								"text-sm underline-offset-4 hover:underline",
+								m.id === viewModel.activeMenu.id
+									? "font-semibold text-foreground"
+									: "text-muted-foreground",
+							]}
+						>
+							{m.name}
+						</a>
+					))}
+				</nav>
+			)
+		}
+
+		{
+			viewModel.sections
+				.filter((s) => s.products.some((p) => p.inActiveMenu))
+				.map((section) => (
+					<section class="flex flex-col gap-3">
+						<h2 class="text-xl font-semibold tracking-tight">{section.label}</h2>
+						<ul class="flex flex-col gap-3">
+							{section.products
+								.filter((p) => p.inActiveMenu)
+								.map((p) => (
+									<li class="flex items-start justify-between gap-4 border-b border-border pb-3">
+										<div>
+											<p class="font-medium">{p.name}</p>
+											{p.description && (
+												<p class="text-muted-foreground text-sm">{p.description}</p>
+											)}
+											{p.tags.length > 0 && (
+												<p class="text-muted-foreground mt-1 text-xs">
+													{p.tags.map((t) => t.name).join(" · ")}
+												</p>
+											)}
+										</div>
+										<p class="tabular-nums text-sm">{p.priceLabel}</p>
+									</li>
+								))}
+						</ul>
+					</section>
+				))
+		}
+	</main>
+</Menu>
