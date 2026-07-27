@@ -1,7 +1,15 @@
 ---
 import { actions } from "astro:actions";
 import Dashboard from "@/layouts/Dashboard.astro";
+import { Button } from "@/components/starwind/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/starwind/card";
 import { requireOwner } from "@/lib/server/auth";
+import {
+	listCategoriesByRestaurant,
+	listMenusByRestaurant,
+	listProductsByRestaurant,
+	listTagsByRestaurant,
+} from "@/lib/server/db";
 
 const signOutResult = Astro.getActionResult(actions.auth.signOut);
 if (signOutResult && !signOutResult.error) {
@@ -11,6 +19,44 @@ if (signOutResult && !signOutResult.error) {
 const auth = await requireOwner(Astro);
 if (auth instanceof Response) return auth;
 const { restaurant, email } = auth;
+
+const [products, categories, menus, tags] = await Promise.all([
+	listProductsByRestaurant(Astro.locals.supabase, restaurant.id),
+	listCategoriesByRestaurant(Astro.locals.supabase, restaurant.id),
+	listMenusByRestaurant(Astro.locals.supabase, restaurant.id),
+	listTagsByRestaurant(Astro.locals.supabase, restaurant.id),
+]);
+
+const cards = [
+	{
+		title: "Productos",
+		description: "Publicados en tu menú",
+		count: products.length,
+		manageHref: "/app/productos",
+		createHref: "/app/productos/new",
+	},
+	{
+		title: "Categorías",
+		description: "Secciones del menú",
+		count: categories.length,
+		manageHref: "/app/categorias",
+		createHref: "/app/categorias/new",
+	},
+	{
+		title: "Menús",
+		description: "Cartas públicas del restaurante",
+		count: menus.length,
+		manageHref: "/app/menus",
+		createHref: "/app/menus/new",
+	},
+	{
+		title: "Etiquetas",
+		description: "Filtros y dietas",
+		count: tags.length,
+		manageHref: "/app/etiquetas",
+		createHref: "/app/etiquetas/new",
+	},
+] as const;
 ---
 
 <Dashboard
@@ -19,7 +65,7 @@ const { restaurant, email } = auth;
 	restaurantSlug={restaurant.slug}
 	restaurantName={restaurant.name}
 >
-	<div class="mx-auto flex max-w-4xl flex-col gap-4">
+	<div class="mx-auto flex max-w-4xl flex-col gap-6">
 		<div>
 			<h1 class="text-2xl font-semibold tracking-tight">Resumen</h1>
 			<p class="text-muted-foreground">
@@ -28,9 +74,7 @@ const { restaurant, email } = auth;
 				<code class="text-sm">/m/{restaurant.slug}</code>
 			</p>
 		</div>
-		<p class="text-muted-foreground text-sm">
-			Panel del restaurante. El CRUD de menús y productos llega en los próximos tickets de Phase 2.
-		</p>
+
 		{
 			signOutResult?.error && (
 				<p class="text-sm text-error-foreground" role="alert">
@@ -38,5 +82,53 @@ const { restaurant, email } = auth;
 				</p>
 			)
 		}
+
+		<div class="grid gap-4 sm:grid-cols-2">
+			{
+				cards.map((card) => (
+					<Card>
+						<CardHeader>
+							<CardTitle>{card.title}</CardTitle>
+							<CardDescription>{card.description}</CardDescription>
+						</CardHeader>
+						<CardContent class="flex flex-wrap items-end justify-between gap-4">
+							<p class="text-3xl font-semibold tabular-nums">{card.count}</p>
+							<div class="flex flex-wrap gap-2">
+								<Button href={card.manageHref} variant="outline" size="sm">
+									Gestionar
+								</Button>
+								<Button href={card.createHref} size="sm">
+									Crear nuevo
+								</Button>
+							</div>
+						</CardContent>
+					</Card>
+				))
+			}
+		</div>
 	</div>
 </Dashboard>
+
+<script>
+	import { prefetch } from "astro:prefetch";
+
+	function prefetchPanelRoutes() {
+		const routes = [
+			"/app/productos",
+			"/app/categorias",
+			"/app/menus",
+			"/app/etiquetas",
+			"/app/info",
+		];
+		const run = () => {
+			for (const href of routes) prefetch(href);
+		};
+		if ("requestIdleCallback" in window) {
+			requestIdleCallback(run, { timeout: 2000 });
+		} else {
+			setTimeout(run, 300);
+		}
+	}
+
+	prefetchPanelRoutes();
+</script>

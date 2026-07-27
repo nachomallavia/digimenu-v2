@@ -209,3 +209,4 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 | 2026-07-27 | DIG-13: `requireOwner` via `owner_restaurants` + `/app/pending`; `digimenu_owner` cookie deferred |
 | 2026-07-27 | DIG-14: synthetic `seed-demo` SQL + CSV import plan docs (no Finca restore) |
 | 2026-07-27 | DIG-15 CP1 PASS: schema/RLS/db/tenancy/seed verified — see `docs/cp1.md` |
+| 2026-07-27 | DIG-22 CP2 PASS + GO Phase 3: owner `/app` feature parity — see `docs/parity-owner.md` (Resumen counts / legacy redirects as follow-ups) |

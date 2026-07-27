@@ -1,0 +1,13 @@
+---
+import { requireOwner } from "@/lib/server/auth";
+
+const auth = await requireOwner(Astro);
+if (auth instanceof Response) return auth;
+
+const menuId = Astro.params.id;
+if (!menuId) {
+	return Astro.redirect("/app/menus");
+}
+
+return Astro.redirect(`/app/menus/${menuId}`);
+---

@@ -1,0 +1,8 @@
+---
+import { requireOwner } from "@/lib/server/auth";
+
+const auth = await requireOwner(Astro);
+if (auth instanceof Response) return auth;
+
+return Astro.redirect("/app/info#marca");
+---
