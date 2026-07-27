@@ -28,3 +28,10 @@ export {
 } from "./color-mode";
 
 export { slugFromName, slugify } from "./slug";
+
+export {
+	CATEGORY_ICON_OPTIONS,
+	isCategoryIconId,
+	TAG_NAME_SUGGESTIONS,
+	type CategoryIconId,
+} from "./category-icons";

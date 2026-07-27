@@ -1,0 +1,92 @@
+---
+import { actions } from "astro:actions";
+import Dashboard from "@/layouts/Dashboard.astro";
+import CategoryIconField from "@/components/app/CategoryIconField.astro";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/starwind/card";
+import { requireOwner } from "@/lib/server/auth";
+
+const result = Astro.getActionResult(actions.categories.create);
+if (result && !result.error) {
+	return Astro.redirect("/app/categorias");
+}
+
+const signOutResult = Astro.getActionResult(actions.auth.signOut);
+if (signOutResult && !signOutResult.error) {
+	return Astro.redirect("/app/login");
+}
+
+const auth = await requireOwner(Astro);
+if (auth instanceof Response) return auth;
+const { restaurant, email } = auth;
+
+const error = result?.error?.message ?? null;
+---
+
+<Dashboard
+	title="DigiMenu — Nueva categoría"
+	email={email}
+	restaurantSlug={restaurant.slug}
+	restaurantName={restaurant.name}
+>
+	<div class="mx-auto flex max-w-2xl flex-col gap-6">
+		<div>
+			<p class="mb-1 text-sm">
+				<a href="/app/categorias" class="text-muted-foreground hover:text-foreground">
+					← Categorías
+				</a>
+			</p>
+			<h1 class="text-2xl font-semibold tracking-tight">Nueva categoría</h1>
+			<p class="text-muted-foreground">
+				Sección del menú. Opcionalmente elegí un icono y/o una imagen de portada.
+			</p>
+		</div>
+
+		{error && <p class="text-sm text-error-foreground" role="alert">{error}</p>}
+
+		<Card data-categoria-new>
+			<CardHeader>
+				<CardTitle>Datos</CardTitle>
+				<CardDescription>Nombre, icono y portada para agrupar productos.</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<form
+					method="POST"
+					action={actions.categories.create}
+					enctype="multipart/form-data"
+					class="flex flex-col gap-4"
+				>
+					<div class="flex flex-col gap-1.5">
+						<Label for="name">Nombre</Label>
+						<Input id="name" name="name" required placeholder="Ej. Postres" />
+					</div>
+
+					<CategoryIconField iconValue="" />
+
+					<div class="flex flex-col gap-2">
+						<Label for="cover">Portada (opcional)</Label>
+						<Input id="cover" name="cover" type="file" accept="image/*" />
+					</div>
+
+					<div class="flex flex-wrap gap-2">
+						<Button type="submit" variant="primary">Crear categoría</Button>
+						<Button href="/app/categorias" variant="outline">Cancelar</Button>
+					</div>
+				</form>
+			</CardContent>
+		</Card>
+	</div>
+</Dashboard>
+
+<script>
+	import { bindIconPreview } from "@/lib/client/owner";
+
+	function bind() {
+		const root = document.querySelector<HTMLElement>("[data-categoria-new]");
+		if (root) bindIconPreview(root);
+	}
+	bind();
+	document.addEventListener("astro:page-load", bind);
+</script>

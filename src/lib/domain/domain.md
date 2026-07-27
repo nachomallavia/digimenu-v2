@@ -15,3 +15,7 @@ Brand/theme JSON parsers land when owner brand UI needs them (DIG-17). Keep this
 ## Slugs (Phase 2)
 
 [`slug.ts`](./slug.ts) — `slugify` / `slugFromName` for owner creates (menus, categories, tags, products). Uniqueness is enforced per restaurant in Postgres.
+
+## Category / tag icons (DIG-19)
+
+[`category-icons.ts`](./category-icons.ts) — curated Tabler outline ids + `isCategoryIconId` + tag name suggestions. Pure data for owner pickers.

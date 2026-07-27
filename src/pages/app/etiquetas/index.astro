@@ -1,7 +1,16 @@
 ---
 import { actions } from "astro:actions";
+import PlusIcon from "@tabler/icons/outline/plus.svg";
 import Dashboard from "@/layouts/Dashboard.astro";
+import CategoryIconField from "@/components/app/CategoryIconField.astro";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
 import { requireOwner } from "@/lib/server/auth";
+import { listTagsByRestaurant } from "@/lib/server/db";
+
+const createResult = Astro.getActionResult(actions.tags.create);
+const updateResult = Astro.getActionResult(actions.tags.update);
+const deleteResult = Astro.getActionResult(actions.tags.delete);
 
 const signOutResult = Astro.getActionResult(actions.auth.signOut);
 if (signOutResult && !signOutResult.error) {
@@ -11,6 +20,21 @@ if (signOutResult && !signOutResult.error) {
 const auth = await requireOwner(Astro);
 if (auth instanceof Response) return auth;
 const { restaurant, email } = auth;
+
+const tags = await listTagsByRestaurant(Astro.locals.supabase, restaurant.id);
+
+const actionError =
+	createResult?.error?.message ||
+	updateResult?.error?.message ||
+	deleteResult?.error?.message ||
+	null;
+
+const message =
+	deleteResult && !deleteResult.error
+		? "Etiqueta eliminada."
+		: (createResult && !createResult.error) || (updateResult && !updateResult.error)
+			? "Guardado."
+			: null;
 ---
 
 <Dashboard
@@ -19,8 +43,73 @@ const { restaurant, email } = auth;
 	restaurantSlug={restaurant.slug}
 	restaurantName={restaurant.name}
 >
-	<div class="mx-auto flex max-w-4xl flex-col gap-2">
-		<h1 class="text-2xl font-semibold tracking-tight">Etiquetas</h1>
-		<p class="text-muted-foreground">Próximamente — gestión de etiquetas.</p>
+	<div class="mx-auto flex max-w-2xl flex-col gap-6">
+		<div class="flex flex-wrap items-start justify-between gap-3">
+			<div>
+				<h1 class="text-2xl font-semibold tracking-tight">Etiquetas</h1>
+				<p class="text-muted-foreground">
+					Etiquetas del restaurante (vegano, picante…). Asignalas en el detalle de cada producto.
+				</p>
+			</div>
+			<Button href="/app/etiquetas/new" variant="primary" size="sm">
+				<PlusIcon class="size-4" />
+				Nueva etiqueta
+			</Button>
+		</div>
+
+		{message && <p class="text-sm text-success">{message}</p>}
+		{actionError && <p class="text-sm text-error-foreground" role="alert">{actionError}</p>}
+
+		{
+			tags.length === 0 ? (
+				<p class="text-sm text-muted-foreground">Todavía no hay etiquetas.</p>
+			) : (
+				<ul class="flex flex-col gap-2">
+					{tags.map((tag) => {
+						const iconValue = tag.icon ?? "";
+						return (
+							<li class="rounded-lg border border-border p-3" data-etiqueta-card>
+								<form method="POST" action={actions.tags.update} class="flex flex-col gap-3">
+									<input type="hidden" name="id" value={tag.id} />
+									<div class="flex flex-wrap items-end gap-2">
+										<div class="min-w-40 flex-1">
+											<label class="text-xs text-muted-foreground" for={`name-${tag.id}`}>
+												Nombre
+											</label>
+											<Input id={`name-${tag.id}`} name="name" value={tag.name} required />
+										</div>
+										<Button type="submit" size="sm" variant="primary">
+											Guardar
+										</Button>
+										<Button
+											type="submit"
+											formaction={actions.tags.delete}
+											size="sm"
+											variant="ghost"
+											onclick="return confirm('¿Borrar esta etiqueta?');"
+										>
+											Borrar
+										</Button>
+									</div>
+									<CategoryIconField iconValue={iconValue} />
+								</form>
+							</li>
+						);
+					})}
+				</ul>
+			)
+		}
 	</div>
 </Dashboard>
+
+<script>
+	import { bindIconPreview } from "@/lib/client/owner";
+
+	function bind() {
+		document.querySelectorAll<HTMLElement>("[data-etiqueta-card]").forEach((card) => {
+			bindIconPreview(card);
+		});
+	}
+	bind();
+	document.addEventListener("astro:page-load", bind);
+</script>

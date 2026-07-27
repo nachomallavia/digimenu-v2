@@ -1,7 +1,16 @@
 ---
 import { actions } from "astro:actions";
+import PlusIcon from "@tabler/icons/outline/plus.svg";
 import Dashboard from "@/layouts/Dashboard.astro";
+import CategoryCard from "@/components/app/CategoryCard.astro";
+import { Button } from "@/components/starwind/button";
 import { requireOwner } from "@/lib/server/auth";
+import { listCategoriesByRestaurant } from "@/lib/server/db";
+
+const createResult = Astro.getActionResult(actions.categories.create);
+const updateResult = Astro.getActionResult(actions.categories.update);
+const deleteResult = Astro.getActionResult(actions.categories.delete);
+const moveResult = Astro.getActionResult(actions.categories.move);
 
 const signOutResult = Astro.getActionResult(actions.auth.signOut);
 if (signOutResult && !signOutResult.error) {
@@ -11,6 +20,25 @@ if (signOutResult && !signOutResult.error) {
 const auth = await requireOwner(Astro);
 if (auth instanceof Response) return auth;
 const { restaurant, email } = auth;
+
+const categorias = await listCategoriesByRestaurant(Astro.locals.supabase, restaurant.id);
+
+const actionError =
+	createResult?.error?.message ||
+	updateResult?.error?.message ||
+	deleteResult?.error?.message ||
+	moveResult?.error?.message ||
+	null;
+
+const message = deleteResult && !deleteResult.error
+	? "Categoría eliminada."
+	: createResult && !createResult.error
+		? "Categoría creada."
+		: updateResult && !updateResult.error
+			? "Categoría actualizada."
+			: moveResult && !moveResult.error
+				? "Orden actualizado."
+				: null;
 ---
 
 <Dashboard
@@ -19,8 +47,70 @@ const { restaurant, email } = auth;
 	restaurantSlug={restaurant.slug}
 	restaurantName={restaurant.name}
 >
-	<div class="mx-auto flex max-w-4xl flex-col gap-2">
-		<h1 class="text-2xl font-semibold tracking-tight">Categorías</h1>
-		<p class="text-muted-foreground">Próximamente — gestión de categorías.</p>
+	<div class="mx-auto flex max-w-4xl flex-col gap-6">
+		<div class="flex flex-wrap items-end justify-between gap-3">
+			<div class="flex flex-col gap-1">
+				<h1 class="text-2xl font-semibold tracking-tight">Categorías</h1>
+				<p class="text-muted-foreground">
+					Secciones del menú. Opcionalmente elegí un icono y/o una imagen de portada.
+				</p>
+			</div>
+			<Button variant="primary" href="/app/categorias/new">
+				<PlusIcon class="size-4" />
+				Crear categoría
+			</Button>
+		</div>
+
+		{message && <p class="text-sm text-success">{message}</p>}
+		{actionError && <p class="text-sm text-error-foreground" role="alert">{actionError}</p>}
+
+		<div class="flex flex-col gap-2">
+			{
+				categorias.length === 0 ? (
+					<>
+						<h2 class="text-lg font-semibold tracking-tight">No hay categorías todavía.</h2>
+						<p class="text-muted-foreground text-sm">
+							Creá la primera haciendo click{" "}
+							<a href="/app/categorias/new" class="underline">
+								acá
+							</a>
+							.
+						</p>
+					</>
+				) : (
+					<>
+						<h2 class="text-lg font-semibold tracking-tight">Existentes</h2>
+						<p class="text-muted-foreground text-sm">
+							Editá nombre, icono y portada. Usá subir/bajar para el orden del menú público.
+						</p>
+					</>
+				)
+			}
+		</div>
+
+		{
+			categorias.length > 0 && (
+				<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					{categorias.map((cat, i) => (
+						<CategoryCard
+							id={cat.id}
+							slug={cat.slug}
+							name={cat.name}
+							icon={cat.icon}
+							coverUrl={cat.cover_url}
+							canMoveUp={i > 0}
+							canMoveDown={i < categorias.length - 1}
+						/>
+					))}
+				</div>
+			)
+		}
 	</div>
 </Dashboard>
+
+<script>
+	import { initCategoryCards } from "@/lib/client/owner";
+
+	initCategoryCards();
+	document.addEventListener("astro:page-load", initCategoryCards);
+</script>
