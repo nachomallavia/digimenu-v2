@@ -1,9 +1,9 @@
-import type { SupabaseClient, User } from "@supabase/supabase-js";
+/// <reference types="astro/client" />
 
 declare namespace App {
 	interface Locals {
-		user: User | null;
-		supabase: SupabaseClient;
+		user: import("@supabase/supabase-js").User | null;
+		supabase: import("@supabase/supabase-js").SupabaseClient;
 	}
 }
 
@@ -16,4 +16,15 @@ interface ImportMetaEnv {
 
 interface ImportMeta {
 	readonly env: ImportMetaEnv;
+}
+
+/** Tabler SVG icons as Astro components (package subpath imports). */
+declare module "@tabler/icons/outline/*.svg" {
+	const Component: import("astro/types").SvgComponent;
+	export default Component;
+}
+
+declare module "@tabler/icons/filled/*.svg" {
+	const Component: import("astro/types").SvgComponent;
+	export default Component;
 }

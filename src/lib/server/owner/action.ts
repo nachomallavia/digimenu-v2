@@ -19,13 +19,13 @@ function toOwnerRestaurant(row: Restaurant): OwnerContext["restaurant"] {
  * Active restaurant = first by name (Alpha).
  */
 export async function requireOwnerAction(context: ActionAPIContext): Promise<OwnerContext> {
-	const user = context.locals.user;
+	const { user, supabase } = context.locals as App.Locals;
 	if (!user) {
 		throw new ActionError({ code: "UNAUTHORIZED", message: "Tenés que iniciar sesión." });
 	}
 
 	try {
-		const restaurants = await listRestaurantsForUser(context.locals.supabase, user.id);
+		const restaurants = await listRestaurantsForUser(supabase, user.id);
 		if (restaurants.length === 0) {
 			throw new ActionError({
 				code: "FORBIDDEN",

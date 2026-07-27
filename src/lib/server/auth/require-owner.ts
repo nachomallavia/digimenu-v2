@@ -14,14 +14,16 @@ export type OwnerContext = {
 	restaurant: OwnerRestaurant;
 };
 
+/**
+ * Accept any Astro-like context. `locals` is `unknown` so empty `App.Locals`
+ * (or orphan worktree checkers) still accept `requireOwner(Astro)`.
+ * Middleware sets `user` / `supabase` at runtime.
+ */
 type RequireOwnerContext = {
 	request: Request;
 	cookies: AstroCookies;
 	redirect: (path: string) => Response;
-	locals: {
-		user: User | null;
-		supabase: SupabaseClient;
-	};
+	locals: unknown;
 };
 
 function toOwnerRestaurant(row: Restaurant): OwnerRestaurant {
@@ -42,13 +44,16 @@ function toOwnerRestaurant(row: Restaurant): OwnerRestaurant {
 export async function requireOwner(
 	context: RequireOwnerContext,
 ): Promise<OwnerContext | Response> {
-	const user = context.locals.user;
-	if (!user) {
+	const { user, supabase } = context.locals as {
+		user?: User | null;
+		supabase?: SupabaseClient;
+	};
+	if (!user || !supabase) {
 		return context.redirect("/app/login");
 	}
 
 	try {
-		const restaurants = await listRestaurantsForUser(context.locals.supabase, user.id);
+		const restaurants = await listRestaurantsForUser(supabase, user.id);
 		if (restaurants.length === 0) {
 			return context.redirect("/app/pending");
 		}

@@ -27,18 +27,11 @@ import type { ColorMode } from "@/lib/domain";
 
 interface Props {
 	currentPath: string;
-	/** Keep in sync with SidebarProvider defaultOpen for SSR collapsed state */
-	defaultOpen?: boolean;
 	colorMode?: ColorMode;
 	restaurantName?: string | null;
 }
 
-const {
-	currentPath,
-	defaultOpen = true,
-	colorMode = "system",
-	restaurantName,
-} = Astro.props;
+const { currentPath, colorMode = "system", restaurantName } = Astro.props;
 
 const items = [
 	{ title: "Resumen", href: "/app", icon: HomeIcon, matchExact: true },
@@ -55,7 +48,7 @@ function isActive(href: string, exact?: boolean) {
 }
 ---
 
-<Sidebar collapsible="icon" defaultOpen={defaultOpen} data-owner-sidebar>
+<Sidebar collapsible="icon" data-owner-sidebar>
 	<SidebarHeader>
 		<SidebarMenu>
 			<SidebarMenuItem>

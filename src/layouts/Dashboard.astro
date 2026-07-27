@@ -35,7 +35,6 @@ const colorMode = parseColorMode(Astro.cookies.get(COLOR_MODE_COOKIE)?.value);
 	<SidebarProvider class="min-h-svh" defaultOpen={sidebarOpen} cookieName={SIDEBAR_COOKIE}>
 		<AppSidebar
 			currentPath={currentPath}
-			defaultOpen={sidebarOpen}
 			colorMode={colorMode}
 			restaurantName={restaurantName}
 		/>

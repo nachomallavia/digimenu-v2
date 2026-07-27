@@ -55,7 +55,10 @@ const savedSection =
 	(removeLogoResult && !removeLogoResult.error && "logos") ||
 	null;
 
-const row = await getRestaurantById(Astro.locals.supabase, ownerRestaurant.id);
+const { supabase } = Astro.locals as unknown as {
+	supabase: import("@supabase/supabase-js").SupabaseClient;
+};
+const row = await getRestaurantById(supabase, ownerRestaurant.id);
 if (!row) {
 	return Astro.redirect("/app/pending?error=lookup");
 }
