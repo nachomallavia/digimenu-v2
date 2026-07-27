@@ -35,7 +35,7 @@ For this project:
 https://rytjzpqmyysftxdwcnhe.supabase.co/storage/v1/object/public/media/{restaurant_id}/logos/foo.webp
 ```
 
-Store that full URL (or path + build URL in app) on the DB row when uploads land in Phase 2.
+Store that full URL on the DB row. App helpers: [`lib/server/owner/media.ts`](../src/lib/server/owner/media.ts) (`uploadMedia`, `removeMedia`, `publicMediaUrl`).
 
 ## Migration
 

@@ -26,3 +26,5 @@ export {
 	parseColorMode,
 	type ColorMode,
 } from "./color-mode";
+
+export { slugFromName, slugify } from "./slug";

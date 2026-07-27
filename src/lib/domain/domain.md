@@ -11,3 +11,7 @@ Brand/theme JSON parsers land when owner brand UI needs them (DIG-17). Keep this
 ## Color mode (DIG-16)
 
 [`color-mode.ts`](./color-mode.ts) — pure helpers for owner-panel light/dark/system preference (`parseColorMode`, `isDarkMode`, cookie name). Used by `Root` + `ColorModeToggle`; no I/O.
+
+## Slugs (Phase 2)
+
+[`slug.ts`](./slug.ts) — `slugify` / `slugFromName` for owner creates (menus, categories, tags, products). Uniqueness is enforced per restaurant in Postgres.
