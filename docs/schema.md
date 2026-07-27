@@ -2,7 +2,7 @@
 
 Source of truth: [`supabase/migrations/20260727010000_domain_schema.sql`](../supabase/migrations/20260727010000_domain_schema.sql)
 
-Applied on **digimenu-db-v2**. RLS is out of scope here → [DIG-11](https://linear.app/cheij-lab/issue/DIG-11).
+Applied on **digimenu-db-v2**. RLS policies → [docs/rls.md](./rls.md) ([DIG-11](https://linear.app/cheij-lab/issue/DIG-11)).
 
 ## Language
 
@@ -51,7 +51,7 @@ Composite FKs keep product + tag in the same restaurant.
 
 ### `owner_restaurants`
 PK `(user_id, restaurant_id)`, `user_id` → `auth.users`, `restaurant_id` → restaurants, `created_at`  
-App cookie / `requireOwner` → DIG-13; policies → DIG-11.
+App cookie / `requireOwner` → DIG-13; RLS → [rls.md](./rls.md).
 
 ## Integrity notes
 
