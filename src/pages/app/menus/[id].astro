@@ -1,0 +1,193 @@
+---
+/**
+ * Menu detail: fields + product assign (DIG-18).
+ * Theme / marca lives on /app/info (DIG-17) — no MenuEstiloPanel here.
+ */
+import { actions } from "astro:actions";
+import Dashboard from "@/layouts/Dashboard.astro";
+import MenuIconField from "@/components/app/MenuIconField.astro";
+import MenuProductsAssign from "@/components/app/MenuProductsAssign.astro";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+import { Textarea } from "@/components/starwind/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/starwind/card";
+import {
+	getMenuTemplateMeta,
+	isMenuIconId,
+	listMenuTemplates,
+} from "@/lib/domain";
+import { requireOwner } from "@/lib/server/auth";
+import {
+	getMenuById,
+	listCategoriesByRestaurant,
+	listMenuProducts,
+	listMenusByRestaurant,
+	listProductsByRestaurant,
+} from "@/lib/server/db";
+
+const updateResult = Astro.getActionResult(actions.menus.update);
+
+const signOutResult = Astro.getActionResult(actions.auth.signOut);
+if (signOutResult && !signOutResult.error) {
+	return Astro.redirect("/app/login");
+}
+
+const auth = await requireOwner(Astro);
+if (auth instanceof Response) return auth;
+const { restaurant, email } = auth;
+
+const menuParam = Astro.params.id;
+if (!menuParam) {
+	return Astro.redirect("/app/menus");
+}
+
+const menu = await getMenuById(Astro.locals.supabase, menuParam);
+if (!menu || menu.restaurant_id !== restaurant.id) {
+	return Astro.redirect("/app/menus");
+}
+
+const [junctions, products, categories, allMenus] = await Promise.all([
+	listMenuProducts(Astro.locals.supabase, menu.id),
+	listProductsByRestaurant(Astro.locals.supabase, restaurant.id),
+	listCategoriesByRestaurant(Astro.locals.supabase, restaurant.id),
+	listMenusByRestaurant(Astro.locals.supabase, restaurant.id),
+]);
+
+const assignedProductIds = junctions
+	.slice()
+	.sort((a, b) => a.sort_order - b.sort_order)
+	.map((j) => j.product_id);
+
+const productsSorted = [...products].sort((a, b) =>
+	a.name.localeCompare(b.name, "es"),
+);
+
+const templates = listMenuTemplates();
+const iconValue = menu.icon && isMenuIconId(menu.icon) ? menu.icon : "";
+const plantillaMeta = getMenuTemplateMeta(menu.template);
+
+const error = updateResult?.error?.message ?? null;
+const message = updateResult && !updateResult.error ? "Guardado." : null;
+---
+
+<Dashboard
+	title={`DigiMenu — ${menu.name}`}
+	email={email}
+	restaurantSlug={restaurant.slug}
+	restaurantName={restaurant.name}
+>
+	<div class="mx-auto flex max-w-3xl flex-col gap-6">
+		<div>
+			<p class="mb-1 text-sm">
+				<a href="/app/menus" class="text-muted-foreground hover:text-foreground">← Menús</a>
+			</p>
+			<h1 class="text-2xl font-semibold tracking-tight">{menu.name}</h1>
+			{
+				menu.description && (
+					<p class="text-muted-foreground">{menu.description}</p>
+				)
+			}
+			{
+				allMenus.length > 1 && (
+					<nav class="mt-3 flex flex-wrap gap-2 text-sm" aria-label="Otras cartas">
+						{allMenus.map((m) => {
+							const active = m.id === menu.id;
+							return (
+								<a
+									href={`/app/menus/${m.id}`}
+									class:list={[
+										"rounded-md border px-2 py-1",
+										active
+											? "border-primary text-primary"
+											: "border-border text-muted-foreground hover:text-foreground",
+									]}
+								>
+									{m.name}
+								</a>
+							);
+						})}
+					</nav>
+				)
+			}
+		</div>
+
+		{message && <p class="text-sm text-success">{message}</p>}
+		{error && <p class="text-sm text-error-foreground" role="alert">{error}</p>}
+
+		<Card data-menu-detail>
+			<CardHeader>
+				<CardTitle>Datos del menú</CardTitle>
+				<CardDescription>
+					Nombre, descripción, icono y plantilla. Marca y tema del menú público:{" "}
+					<a href="/app/info#marca" class="underline">
+						Restaurant → Marca
+					</a>
+					.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<form method="POST" action={actions.menus.update} class="flex flex-col gap-4">
+					<input type="hidden" name="id" value={menu.id} />
+					<div class="flex flex-col gap-1.5">
+						<Label for="name">Nombre</Label>
+						<Input id="name" name="name" value={menu.name} required />
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<Label for="description">Descripción</Label>
+						<Textarea id="description" name="description" rows={2}>
+							{menu.description ?? ""}
+						</Textarea>
+					</div>
+					<MenuIconField iconValue={iconValue} />
+					<div class="flex flex-col gap-1.5">
+						<Label for="template">Plantilla</Label>
+						<select
+							id="template"
+							name="template"
+							class="border-input bg-background h-11 rounded-md border px-3 text-sm"
+						>
+							{
+								templates.map((t) => (
+									<option value={t.id} selected={plantillaMeta.id === t.id}>
+										{t.label} — {t.description}
+									</option>
+								))
+							}
+						</select>
+					</div>
+					<div>
+						<Button type="submit" variant="primary">Guardar menú</Button>
+					</div>
+				</form>
+			</CardContent>
+		</Card>
+
+		<section class="flex flex-col gap-3">
+			<div>
+				<h2 class="text-lg font-semibold tracking-tight">Lista de productos</h2>
+				<p class="text-muted-foreground text-sm">
+					Asigná qué productos aparecen en esta carta. Los cambios se guardan solos.
+				</p>
+			</div>
+			<MenuProductsAssign
+				menuId={menu.id}
+				assignedProductIds={assignedProductIds}
+				products={productsSorted}
+				categories={categories}
+			/>
+		</section>
+	</div>
+</Dashboard>
+
+<script>
+	import { bindIconPreview, bootMenuProducts } from "@/lib/client/owner";
+
+	function bind() {
+		const root = document.querySelector<HTMLElement>("[data-menu-detail]");
+		if (root) bindIconPreview(root);
+		bootMenuProducts();
+	}
+	bind();
+	document.addEventListener("astro:page-load", bind);
+</script>

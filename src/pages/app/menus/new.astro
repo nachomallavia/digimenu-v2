@@ -1,0 +1,115 @@
+---
+import { actions } from "astro:actions";
+import Dashboard from "@/layouts/Dashboard.astro";
+import MenuIconField from "@/components/app/MenuIconField.astro";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+import { Textarea } from "@/components/starwind/textarea";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/starwind/card";
+import { listMenuTemplates, MENU_NAME_SUGGESTIONS } from "@/lib/domain";
+import { requireOwner } from "@/lib/server/auth";
+
+const result = Astro.getActionResult(actions.menus.create);
+if (result && !result.error) {
+	return Astro.redirect(`/app/menus/${result.data.id}`);
+}
+
+const signOutResult = Astro.getActionResult(actions.auth.signOut);
+if (signOutResult && !signOutResult.error) {
+	return Astro.redirect("/app/login");
+}
+
+const auth = await requireOwner(Astro);
+if (auth instanceof Response) return auth;
+const { restaurant, email } = auth;
+
+const templates = listMenuTemplates();
+const error = result?.error?.message ?? null;
+---
+
+<Dashboard
+	title="DigiMenu — Nuevo menú"
+	email={email}
+	restaurantSlug={restaurant.slug}
+	restaurantName={restaurant.name}
+>
+	<div class="mx-auto flex max-w-2xl flex-col gap-6">
+		<div>
+			<p class="mb-1 text-sm">
+				<a href="/app/menus" class="text-muted-foreground hover:text-foreground">← Menús</a>
+			</p>
+			<h1 class="text-2xl font-semibold tracking-tight">Nuevo menú</h1>
+			<p class="text-muted-foreground">
+				Una carta del restaurante. El icono se muestra en el inicio cuando hay varios menús.
+			</p>
+		</div>
+
+		{error && <p class="text-sm text-error-foreground" role="alert">{error}</p>}
+
+		<Card data-menu-new>
+			<CardHeader>
+				<CardTitle>Datos</CardTitle>
+				<CardDescription>Nombre, icono de inicio y plantilla inicial.</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<form method="POST" action={actions.menus.create} class="flex flex-col gap-5">
+					<div class="flex flex-col gap-1.5">
+						<Label for="name">Nombre</Label>
+						<Input id="name" name="name" required data-menu-nombre />
+						<div class="flex flex-wrap gap-1.5 pt-1">
+							{
+								MENU_NAME_SUGGESTIONS.map((s) => (
+									<button
+										type="button"
+										class="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground hover:text-foreground"
+										data-suggest={s}
+									>
+										{s}
+									</button>
+								))
+							}
+						</div>
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<Label for="description">Descripción</Label>
+						<Textarea id="description" name="description" rows={2} />
+					</div>
+					<MenuIconField iconValue="" />
+					<div class="flex flex-col gap-1.5">
+						<Label for="template">Plantilla</Label>
+						<select
+							id="template"
+							name="template"
+							class="border-input bg-background h-11 rounded-md border px-3 text-sm"
+						>
+							{
+								templates.map((t) => (
+									<option value={t.id}>
+										{t.label} — {t.description}
+									</option>
+								))
+							}
+						</select>
+					</div>
+					<div class="flex flex-wrap gap-2">
+						<Button type="submit" variant="primary">Crear menú</Button>
+						<Button href="/app/menus" variant="outline">Cancelar</Button>
+					</div>
+				</form>
+			</CardContent>
+		</Card>
+	</div>
+</Dashboard>
+
+<script>
+	import { bindIconPreview, bindSuggestChips } from "@/lib/client/owner";
+
+	function bind() {
+		bindSuggestChips("[data-menu-nombre]");
+		const root = document.querySelector<HTMLElement>("[data-menu-new]");
+		if (root) bindIconPreview(root);
+	}
+	bind();
+	document.addEventListener("astro:page-load", bind);
+</script>

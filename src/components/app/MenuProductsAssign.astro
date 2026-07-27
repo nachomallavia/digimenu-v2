@@ -1,0 +1,143 @@
+---
+/**
+ * Owner menu product assign: search, category filter, checkboxes.
+ * Simplified vs legacy Lista (no pager / Starwind category dropdown).
+ */
+import SearchIcon from "@tabler/icons/outline/search.svg";
+import type { Category, Product } from "@/lib/domain";
+import { Input } from "@/components/starwind/input";
+
+type Props = {
+	menuId: string;
+	assignedProductIds: string[];
+	products: Product[];
+	categories: Category[];
+};
+
+const { menuId, assignedProductIds, products, categories } = Astro.props;
+const assignedSet = new Set(assignedProductIds);
+
+const catNameById = new Map(categories.map((c) => [c.id, c.name]));
+const priceFmt = new Intl.NumberFormat("es-AR", {
+	style: "currency",
+	currency: "ARS",
+	maximumFractionDigits: 0,
+});
+const assignedCount = products.filter((p) => assignedSet.has(p.id)).length;
+---
+
+<div
+	class="flex flex-col gap-4"
+	data-menu-products
+	data-menu-id={menuId}
+	data-assigned-count={String(assignedCount)}
+>
+	<p class="text-sm text-muted-foreground">
+		Marcá los productos de esta carta.
+		<span data-assigned-label>
+			{" "}
+			{assignedCount} de {products.length} asignados.
+		</span>
+		<span data-menu-products-status class="text-muted-foreground ml-1" hidden></span>
+	</p>
+
+	<div class="flex w-full flex-wrap items-center gap-3">
+		<div class="relative w-full max-w-sm">
+			<SearchIcon
+				class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+				aria-hidden="true"
+			/>
+			<Input
+				type="search"
+				placeholder="Buscar producto"
+				class="w-full pl-9"
+				data-menu-products-search
+				autocomplete="off"
+			/>
+		</div>
+		{
+			categories.length > 0 && (
+				<select
+					class="border-input bg-background h-10 rounded-md border px-3 text-sm"
+					data-menu-products-category
+					aria-label="Filtrar por categoría"
+				>
+					<option value="">Todas las categorías</option>
+					<option value="__none">Sin categoría</option>
+					{categories.map((c) => (
+						<option value={c.id}>{c.name}</option>
+					))}
+				</select>
+			)
+		}
+	</div>
+
+	{
+		products.length === 0 ? (
+			<p class="text-sm text-muted-foreground">
+				Todavía no hay productos en el catálogo. Creálos en{" "}
+				<a href="/app/productos" class="underline">
+					Productos
+				</a>
+				.
+			</p>
+		) : (
+			<>
+				<label class="flex cursor-pointer items-center gap-2 text-sm">
+					<input
+						type="checkbox"
+						class="size-4 shrink-0 accent-primary"
+						data-menu-assign-all
+					/>
+					<span>Seleccionar todos los filtrados</span>
+				</label>
+				<ul
+					class="divide-y divide-border rounded-lg border border-border"
+					data-menu-products-list
+				>
+					{products.map((p, i) => {
+						const assigned = assignedSet.has(p.id);
+						const catId = p.category_id ?? "";
+						const catLabel = catId
+							? (catNameById.get(catId) ?? "Sin categoría")
+							: "Sin categoría";
+						return (
+							<li
+								class="flex items-center gap-3 px-3 py-2.5"
+								data-menu-product-row
+								data-nombre={p.name}
+								data-categoria-id={catId}
+								data-sort-index={String(i)}
+							>
+								<label class="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
+									<input
+										type="checkbox"
+										class="size-4 shrink-0 accent-primary"
+										checked={assigned}
+										data-menu-assign
+										data-product-id={p.id}
+									/>
+									<span class="min-w-0">
+										<span class="block truncate text-sm font-medium">{p.name}</span>
+										<span class="text-muted-foreground block truncate text-xs">
+											{catLabel} · {priceFmt.format(p.price)}
+										</span>
+									</span>
+								</label>
+							</li>
+						);
+					})}
+				</ul>
+				<p
+					data-menu-products-empty
+					hidden
+					class="text-muted-foreground py-6 text-center text-sm"
+				>
+					Ningún producto coincide con los filtros.
+				</p>
+			</>
+		)
+	}
+
+	<p data-menu-products-toast hidden class="text-sm text-error-foreground" role="status"></p>
+</div>

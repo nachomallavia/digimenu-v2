@@ -1,0 +1,53 @@
+---
+/**
+ * Renders a curated Tabler outline icon by id (menus.icon).
+ */
+import Beer from "@tabler/icons/outline/beer.svg";
+import Bottle from "@tabler/icons/outline/bottle.svg";
+import Cake from "@tabler/icons/outline/cake.svg";
+import ChefHat from "@tabler/icons/outline/chef-hat.svg";
+import Coffee from "@tabler/icons/outline/coffee.svg";
+import Cup from "@tabler/icons/outline/cup.svg";
+import Fish from "@tabler/icons/outline/fish.svg";
+import GlassFull from "@tabler/icons/outline/glass-full.svg";
+import Meat from "@tabler/icons/outline/meat.svg";
+import Moon from "@tabler/icons/outline/moon.svg";
+import Pizza from "@tabler/icons/outline/pizza.svg";
+import Salad from "@tabler/icons/outline/salad.svg";
+import Soup from "@tabler/icons/outline/soup.svg";
+import Star from "@tabler/icons/outline/star.svg";
+import Sun from "@tabler/icons/outline/sun.svg";
+import ToolsKitchen2 from "@tabler/icons/outline/tools-kitchen-2.svg";
+import { isMenuIconId, type MenuIconId } from "@/lib/domain";
+
+interface Props {
+	icon?: string | null;
+	class?: string;
+}
+
+const { icon, class: className = "size-5" } = Astro.props;
+const id = icon && isMenuIconId(icon) ? (icon as MenuIconId) : null;
+
+const icons = {
+	"tools-kitchen-2": ToolsKitchen2,
+	"chef-hat": ChefHat,
+	sun: Sun,
+	moon: Moon,
+	coffee: Coffee,
+	cup: Cup,
+	"glass-full": GlassFull,
+	beer: Beer,
+	bottle: Bottle,
+	pizza: Pizza,
+	salad: Salad,
+	soup: Soup,
+	meat: Meat,
+	fish: Fish,
+	cake: Cake,
+	star: Star,
+} as const;
+
+const Icon = id && id in icons ? icons[id as keyof typeof icons] : null;
+---
+
+{Icon && <Icon class={className} aria-hidden="true" />}

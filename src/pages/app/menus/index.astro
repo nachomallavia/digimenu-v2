@@ -1,7 +1,24 @@
 ---
+/**
+ * Owner menus list — DIG-18.
+ * List/create/edit/delete + sort; product assign on detail.
+ */
 import { actions } from "astro:actions";
+import PlusIcon from "@tabler/icons/outline/plus.svg";
+import ChevronUpIcon from "@tabler/icons/outline/chevron-up.svg";
+import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
 import Dashboard from "@/layouts/Dashboard.astro";
+import MenuIconField from "@/components/app/MenuIconField.astro";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { getMenuTemplateMeta, isMenuIconId } from "@/lib/domain";
 import { requireOwner } from "@/lib/server/auth";
+import { listMenusByRestaurant } from "@/lib/server/db";
+
+const createResult = Astro.getActionResult(actions.menus.create);
+const updateResult = Astro.getActionResult(actions.menus.update);
+const deleteResult = Astro.getActionResult(actions.menus.delete);
+const moveResult = Astro.getActionResult(actions.menus.move);
 
 const signOutResult = Astro.getActionResult(actions.auth.signOut);
 if (signOutResult && !signOutResult.error) {
@@ -11,6 +28,26 @@ if (signOutResult && !signOutResult.error) {
 const auth = await requireOwner(Astro);
 if (auth instanceof Response) return auth;
 const { restaurant, email } = auth;
+
+const menus = await listMenusByRestaurant(Astro.locals.supabase, restaurant.id);
+
+const actionError =
+	createResult?.error?.message ||
+	updateResult?.error?.message ||
+	deleteResult?.error?.message ||
+	moveResult?.error?.message ||
+	null;
+
+const message =
+	deleteResult && !deleteResult.error
+		? "Menú eliminado."
+		: createResult && !createResult.error
+			? "Menú creado."
+			: updateResult && !updateResult.error
+				? "Guardado."
+				: moveResult && !moveResult.error
+					? "Orden actualizado."
+					: null;
 ---
 
 <Dashboard
@@ -19,8 +56,142 @@ const { restaurant, email } = auth;
 	restaurantSlug={restaurant.slug}
 	restaurantName={restaurant.name}
 >
-	<div class="mx-auto flex max-w-4xl flex-col gap-2">
-		<h1 class="text-2xl font-semibold tracking-tight">Menús</h1>
-		<p class="text-muted-foreground">Próximamente — gestión de menús.</p>
+	<div class="mx-auto flex max-w-3xl flex-col gap-6">
+		<div class="flex flex-wrap items-start justify-between gap-3">
+			<div>
+				<h1 class="text-2xl font-semibold tracking-tight">Menús</h1>
+				<p class="text-muted-foreground">
+					Cartas del restaurante (almuerzo, cena, vinos…). Cada una puede tener su plantilla.
+				</p>
+			</div>
+			<Button href="/app/menus/new" variant="primary" size="sm">
+				<PlusIcon class="size-4" />
+				Nuevo menú
+			</Button>
+		</div>
+
+		{message && <p class="text-sm text-success">{message}</p>}
+		{actionError && <p class="text-sm text-error-foreground" role="alert">{actionError}</p>}
+
+		{
+			menus.length === 0 ? (
+				<p class="text-sm text-muted-foreground">
+					Todavía no hay menús. Creá uno desde{" "}
+					<a href="/app/menus/new" class="underline">
+						Nuevo menú
+					</a>
+					.
+				</p>
+			) : (
+				<ul class="flex flex-col gap-3">
+					{menus.map((menu, i) => {
+						const plantilla = getMenuTemplateMeta(menu.template);
+						const iconValue =
+							menu.icon && isMenuIconId(menu.icon) ? menu.icon : "";
+						return (
+							<li class="rounded-lg border border-border p-4" data-menu-card>
+								<div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+									<p class="text-xs text-muted-foreground">
+										Plantilla: {plantilla.label}
+									</p>
+									{(i > 0 || i < menus.length - 1) && (
+										<div class="flex gap-1">
+											<form method="POST" action={actions.menus.move} class="inline">
+												<input type="hidden" name="id" value={menu.id} />
+												<input type="hidden" name="direction" value="up" />
+												<Button
+													type="submit"
+													variant="ghost"
+													size="sm"
+													disabled={i === 0}
+													aria-label="Subir menú"
+												>
+													<ChevronUpIcon class="size-4" />
+												</Button>
+											</form>
+											<form method="POST" action={actions.menus.move} class="inline">
+												<input type="hidden" name="id" value={menu.id} />
+												<input type="hidden" name="direction" value="down" />
+												<Button
+													type="submit"
+													variant="ghost"
+													size="sm"
+													disabled={i === menus.length - 1}
+													aria-label="Bajar menú"
+												>
+													<ChevronDownIcon class="size-4" />
+												</Button>
+											</form>
+										</div>
+									)}
+								</div>
+								<form
+									method="POST"
+									action={actions.menus.update}
+									class="flex flex-col gap-3"
+								>
+									<input type="hidden" name="id" value={menu.id} />
+									<div class="flex flex-wrap items-end gap-3">
+										<div class="min-w-48 flex-1">
+											<label class="text-xs text-muted-foreground" for={`name-${menu.id}`}>
+												Nombre
+											</label>
+											<Input
+												id={`name-${menu.id}`}
+												name="name"
+												value={menu.name}
+												required
+											/>
+										</div>
+										<div class="min-w-48 flex-1">
+											<label class="text-xs text-muted-foreground" for={`desc-${menu.id}`}>
+												Descripción
+											</label>
+											<Input
+												id={`desc-${menu.id}`}
+												name="description"
+												value={menu.description ?? ""}
+											/>
+										</div>
+									</div>
+									<MenuIconField iconValue={iconValue} selectId={`icon-${menu.id}`} />
+									<div class="flex flex-wrap gap-2">
+										<Button type="submit" size="sm" variant="primary">
+											Guardar
+										</Button>
+										<Button href={`/app/menus/${menu.id}`} size="sm" variant="outline">
+											Abrir
+										</Button>
+										{menus.length > 1 && (
+											<Button
+												type="submit"
+												formaction={actions.menus.delete}
+												size="sm"
+												variant="ghost"
+												onclick="return confirm('¿Borrar este menú?');"
+											>
+												Borrar
+											</Button>
+										)}
+									</div>
+								</form>
+							</li>
+						);
+					})}
+				</ul>
+			)
+		}
 	</div>
 </Dashboard>
+
+<script>
+	import { bindIconPreview } from "@/lib/client/owner";
+
+	function bind() {
+		document.querySelectorAll<HTMLElement>("[data-menu-card]").forEach((card) => {
+			bindIconPreview(card);
+		});
+	}
+	bind();
+	document.addEventListener("astro:page-load", bind);
+</script>

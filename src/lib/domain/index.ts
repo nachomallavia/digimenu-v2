@@ -61,3 +61,19 @@ export {
 	TAG_NAME_SUGGESTIONS,
 	type CategoryIconId,
 } from "./category-icons";
+
+export {
+	MENU_ICON_OPTIONS,
+	MENU_NAME_SUGGESTIONS,
+	isMenuIconId,
+	type MenuIconId,
+} from "./menu-icons";
+
+export {
+	DEFAULT_MENU_TEMPLATE_ID,
+	MENU_TEMPLATES,
+	getMenuTemplateMeta,
+	listMenuTemplates,
+	resolveMenuTemplateId,
+	type MenuTemplateMeta,
+} from "./menu-templates";

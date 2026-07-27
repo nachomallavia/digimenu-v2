@@ -1,0 +1,59 @@
+---
+import MenuIcon from "@/components/app/MenuIcon.astro";
+import CircleOff from "@tabler/icons/outline/circle-off.svg";
+import { MENU_ICON_OPTIONS } from "@/lib/domain";
+import { Label } from "@/components/starwind/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/starwind/select";
+
+interface Props {
+	iconValue: string;
+	canWrite?: boolean;
+	selectId?: string;
+}
+
+const { iconValue, canWrite = true, selectId } = Astro.props;
+---
+
+<div class="flex flex-col gap-1.5" data-menu-icon-field>
+	<Label class="text-sm font-light text-muted-foreground">Icono (opcional)</Label>
+	<div class="flex items-center gap-2">
+		<span data-icon-preview class="inline-flex size-5 shrink-0 items-center justify-center">
+			<span data-icon-id="" class:list={[iconValue === "" ? "inline-flex" : "hidden"]}>
+				<CircleOff class="text-muted-foreground size-5 shrink-0" aria-hidden="true" />
+			</span>
+			{
+				MENU_ICON_OPTIONS.map((opt) => (
+					<span
+						data-icon-id={opt.id}
+						class:list={[iconValue === opt.id ? "inline-flex" : "hidden"]}
+					>
+						<MenuIcon icon={opt.id} class="size-5 shrink-0" />
+					</span>
+				))
+			}
+		</span>
+		<Select name="icon" class="w-full" defaultValue={iconValue} data-field="icon" id={selectId}>
+			<SelectTrigger class="w-full" size="sm" disabled={!canWrite}>
+				<SelectValue placeholder="Sin icono" />
+			</SelectTrigger>
+			<SelectContent>
+				<SelectItem value="">
+					<span class="inline-flex items-center gap-2">
+						<CircleOff class="text-muted-foreground size-5 shrink-0 flex!" />
+						Sin icono
+					</span>
+				</SelectItem>
+				{
+					MENU_ICON_OPTIONS.map((opt) => (
+						<SelectItem value={opt.id}>
+							<span class="inline-flex items-center gap-2">
+								<MenuIcon icon={opt.id} class="size-5 shrink-0 flex!" />
+								{opt.label}
+							</span>
+						</SelectItem>
+					))
+				}
+			</SelectContent>
+		</Select>
+	</div>
+</div>

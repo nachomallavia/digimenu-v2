@@ -26,3 +26,10 @@ Pure types and helpers (no I/O): brand/theme parsers, shared domain shapes.
 ## Category / tag icons (DIG-19)
 
 [`category-icons.ts`](./category-icons.ts) — curated Tabler outline ids + `isCategoryIconId` + tag name suggestions. Pure data for owner pickers.
+
+## Menu icons / templates (DIG-18)
+
+| Module | Role |
+|--------|------|
+| [`menu-icons.ts`](./menu-icons.ts) | Curated Tabler ids + `isMenuIconId` + name suggestions for cartas |
+| [`menu-templates.ts`](./menu-templates.ts) | Minimal registry (`classic` only through CP3) |

@@ -6,3 +6,4 @@ export {
 	bindSuggestChips,
 	initCategoryCards,
 } from "./categories";
+export { bootMenuProducts } from "./menus";
