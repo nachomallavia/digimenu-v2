@@ -1,16 +1,28 @@
 ---
 import "@/styles/starwind.css";
+import type { ColorMode } from "@/lib/domain";
 
 interface Props {
 	title?: string;
 	description?: string;
+	/**
+	 * Owner-panel color preference. When set, applies `.dark` on `<html>`
+	 * and runs a blocking script so system mode does not flash.
+	 * Omit on public menu pages (restaurant theme owns appearance).
+	 */
+	colorMode?: ColorMode;
 }
 
-const { title = "DigiMenu", description = "Menús digitales para restaurantes" } = Astro.props;
+const {
+	title = "DigiMenu",
+	description = "Menús digitales para restaurantes",
+	colorMode,
+} = Astro.props;
+const htmlDarkClass = colorMode === "dark" ? "dark" : undefined;
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang="es" class={htmlDarkClass} data-color-mode={colorMode}>
 	<head>
 		<meta charset="utf-8" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -19,6 +31,20 @@ const { title = "DigiMenu", description = "Menús digitales para restaurantes" }
 		<meta name="generator" content={Astro.generator} />
 		<meta name="description" content={description} />
 		<title>{title}</title>
+		{
+			colorMode && (
+				<script is:inline define:vars={{ colorMode }}>
+					(function () {
+						const dark =
+							colorMode === "dark" ||
+							(colorMode === "system" &&
+								window.matchMedia("(prefers-color-scheme: dark)").matches);
+						document.documentElement.classList.toggle("dark", dark);
+						document.documentElement.dataset.colorMode = colorMode;
+					})();
+				</script>
+			)
+		}
 	</head>
 	<body class="bg-background text-foreground min-h-dvh antialiased">
 		<slot />

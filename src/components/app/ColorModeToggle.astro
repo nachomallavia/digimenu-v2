@@ -1,0 +1,113 @@
+---
+/**
+ * Light / dark / system color-mode toggle for the owner sidebar footer.
+ */
+import SunIcon from "@tabler/icons/outline/sun.svg";
+import MoonIcon from "@tabler/icons/outline/moon.svg";
+import DeviceDesktopIcon from "@tabler/icons/outline/device-desktop.svg";
+import type { ColorMode } from "@/lib/domain";
+
+interface Props {
+	colorMode?: ColorMode;
+}
+
+const { colorMode = "system" } = Astro.props;
+
+const themeOptions = [
+	{ mode: "light" as const, label: "Claro", icon: SunIcon },
+	{ mode: "dark" as const, label: "Oscuro", icon: MoonIcon },
+	{ mode: "system" as const, label: "Sistema", icon: DeviceDesktopIcon },
+];
+---
+
+<div
+	class="flex w-full items-center gap-0.5 rounded-lg bg-sidebar-accent p-0.5 group-data-[collapsible=icon]:flex-col"
+	role="group"
+	aria-label="Tema"
+	data-color-mode-toggle
+	data-color-mode={colorMode}
+>
+	{
+		themeOptions.map((option) => (
+			<button
+				type="button"
+				class:list={[
+					"text-sidebar-foreground/70 hover:text-sidebar-accent-foreground flex flex-1 items-center justify-center rounded-md p-2 transition-colors",
+					"focus-visible:ring-sidebar-outline focus-visible:ring-2 focus-visible:outline-none",
+					"data-[active=true]:bg-sidebar data-[active=true]:text-sidebar-accent-foreground data-[active=true]:shadow-sm",
+				]}
+				data-color-mode-option={option.mode}
+				data-active={String(colorMode === option.mode)}
+				aria-label={option.label}
+				aria-pressed={colorMode === option.mode}
+				title={option.label}
+			>
+				<option.icon class="size-4.5 shrink-0" />
+				<span class="sr-only">{option.label}</span>
+			</button>
+		))
+	}
+</div>
+
+<script>
+	import {
+		COLOR_MODE_COOKIE,
+		COLOR_MODE_MAX_AGE,
+		isDarkMode,
+		parseColorMode,
+		type ColorMode,
+	} from "@/lib/domain";
+
+	function prefersDark() {
+		return window.matchMedia("(prefers-color-scheme: dark)").matches;
+	}
+
+	function applyColorMode(mode: ColorMode) {
+		const dark = isDarkMode(mode, prefersDark());
+		document.documentElement.classList.toggle("dark", dark);
+		document.documentElement.dataset.colorMode = mode;
+		document.cookie = `${COLOR_MODE_COOKIE}=${mode}; path=/app; max-age=${COLOR_MODE_MAX_AGE}; SameSite=Lax`;
+
+		document.querySelectorAll<HTMLElement>("[data-color-mode-toggle]").forEach((toggle) => {
+			toggle.dataset.colorMode = mode;
+			toggle.querySelectorAll<HTMLElement>("[data-color-mode-option]").forEach((btn) => {
+				const active = btn.dataset.colorModeOption === mode;
+				btn.dataset.active = String(active);
+				btn.setAttribute("aria-pressed", String(active));
+			});
+		});
+	}
+
+	function setupColorModeToggle() {
+		document.querySelectorAll<HTMLElement>("[data-color-mode-toggle]").forEach((toggle) => {
+			if (toggle.dataset.bound === "1") return;
+			toggle.dataset.bound = "1";
+			toggle.addEventListener("click", (event) => {
+				const target = (event.target as HTMLElement | null)?.closest<HTMLElement>(
+					"[data-color-mode-option]",
+				);
+				if (!target) return;
+				applyColorMode(parseColorMode(target.dataset.colorModeOption));
+			});
+		});
+	}
+
+	function onSystemPreferenceChange() {
+		const mode = parseColorMode(document.documentElement.dataset.colorMode);
+		if (mode === "system") applyColorMode("system");
+	}
+
+	function setupSystemPreferenceListener() {
+		const mq = window.matchMedia("(prefers-color-scheme: dark)");
+		mq.removeEventListener("change", onSystemPreferenceChange);
+		mq.addEventListener("change", onSystemPreferenceChange);
+	}
+
+	function initColorModeToggle() {
+		setupColorModeToggle();
+		setupSystemPreferenceListener();
+	}
+
+	initColorModeToggle();
+	document.addEventListener("astro:page-load", initColorModeToggle);
+</script>

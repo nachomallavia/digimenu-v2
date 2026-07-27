@@ -18,3 +18,11 @@ export type {
 	TagInsert,
 	TagUpdate,
 } from "./types";
+
+export {
+	COLOR_MODE_COOKIE,
+	COLOR_MODE_MAX_AGE,
+	isDarkMode,
+	parseColorMode,
+	type ColorMode,
+} from "./color-mode";

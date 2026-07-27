@@ -1,0 +1,135 @@
+---
+/**
+ * Owner panel navigation sidebar (DigiMenu brand).
+ */
+import BuildingStoreIcon from "@tabler/icons/outline/building-store.svg";
+import LayoutListIcon from "@tabler/icons/outline/layout-list.svg";
+import TagsIcon from "@tabler/icons/outline/tags.svg";
+import PackageIcon from "@tabler/icons/outline/package.svg";
+import HomeIcon from "@tabler/icons/outline/home.svg";
+import ListDetailsIcon from "@tabler/icons/outline/list-details.svg";
+import ColorModeToggle from "@/components/app/ColorModeToggle.astro";
+import {
+	Sidebar,
+	SidebarContent,
+	SidebarFooter,
+	SidebarGroup,
+	SidebarGroupContent,
+	SidebarGroupLabel,
+	SidebarHeader,
+	SidebarMenu,
+	SidebarMenuButton,
+	SidebarMenuItem,
+	SidebarRail,
+	SidebarSeparator,
+} from "@/components/starwind/sidebar";
+import type { ColorMode } from "@/lib/domain";
+
+interface Props {
+	currentPath: string;
+	/** Keep in sync with SidebarProvider defaultOpen for SSR collapsed state */
+	defaultOpen?: boolean;
+	colorMode?: ColorMode;
+	restaurantName?: string | null;
+}
+
+const {
+	currentPath,
+	defaultOpen = true,
+	colorMode = "system",
+	restaurantName,
+} = Astro.props;
+
+const items = [
+	{ title: "Resumen", href: "/app", icon: HomeIcon, matchExact: true },
+	{ title: "Restaurant", href: "/app/info", icon: BuildingStoreIcon },
+	{ title: "Menús", href: "/app/menus", icon: LayoutListIcon },
+	{ title: "Productos", href: "/app/productos", icon: PackageIcon },
+	{ title: "Categorías", href: "/app/categorias", icon: TagsIcon },
+	{ title: "Etiquetas", href: "/app/etiquetas", icon: ListDetailsIcon },
+];
+
+function isActive(href: string, exact?: boolean) {
+	if (exact) return currentPath === href;
+	return currentPath === href || currentPath.startsWith(`${href}/`);
+}
+---
+
+<Sidebar collapsible="icon" defaultOpen={defaultOpen} data-owner-sidebar>
+	<SidebarHeader>
+		<SidebarMenu>
+			<SidebarMenuItem>
+				<SidebarMenuButton size="default" href="/app" tooltip="DigiMenu">
+					<div
+						class="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 shrink-0 items-center justify-center rounded-lg text-sm font-semibold transition-[width,height,border-radius,font-size] duration-200 ease-linear group-data-[collapsible=icon]:size-4.5 group-data-[collapsible=icon]:rounded-md group-data-[collapsible=icon]:text-[10px]"
+					>
+						D
+					</div>
+					<div class="grid flex-1 text-left text-sm leading-tight">
+						<span class="truncate font-semibold">DigiMenu</span>
+						{
+							restaurantName && (
+								<span class="truncate text-xs text-muted-foreground" data-owner-restaurant-name>
+									{restaurantName}
+								</span>
+							)
+						}
+					</div>
+				</SidebarMenuButton>
+			</SidebarMenuItem>
+		</SidebarMenu>
+	</SidebarHeader>
+
+	<SidebarSeparator />
+
+	<SidebarContent>
+		<SidebarGroup>
+			<SidebarGroupLabel>Menú</SidebarGroupLabel>
+			<SidebarGroupContent>
+				<SidebarMenu>
+					{
+						items.map((item) => (
+							<SidebarMenuItem>
+								<SidebarMenuButton
+									href={item.href}
+									isActive={isActive(item.href, item.matchExact)}
+									tooltip={item.title}
+									data-owner-nav={item.href}
+									data-owner-nav-exact={item.matchExact ? "1" : undefined}
+								>
+									<item.icon />
+									<span>{item.title}</span>
+								</SidebarMenuButton>
+							</SidebarMenuItem>
+						))
+					}
+				</SidebarMenu>
+			</SidebarGroupContent>
+		</SidebarGroup>
+	</SidebarContent>
+
+	<SidebarFooter>
+		<ColorModeToggle colorMode={colorMode} />
+	</SidebarFooter>
+
+	<SidebarRail />
+</Sidebar>
+
+<script>
+	function syncOwnerNav() {
+		const path = location.pathname;
+		document.querySelectorAll<HTMLElement>("[data-owner-nav]").forEach((el) => {
+			const href = el.dataset.ownerNav ?? "";
+			const exact = el.dataset.ownerNavExact === "1";
+			const active = exact ? path === href : path === href || path.startsWith(`${href}/`);
+			el.dataset.active = String(active);
+		});
+	}
+
+	function init() {
+		syncOwnerNav();
+	}
+
+	init();
+	document.addEventListener("astro:page-load", init);
+</script>

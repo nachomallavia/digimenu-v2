@@ -1,6 +1,5 @@
 ---
 import { actions } from "astro:actions";
-import { Button } from "@/components/starwind/button";
 import Dashboard from "@/layouts/Dashboard.astro";
 import { requireOwner } from "@/lib/server/auth";
 
@@ -14,32 +13,30 @@ if (auth instanceof Response) return auth;
 const { restaurant, email } = auth;
 ---
 
-<Dashboard title="DigiMenu — App">
-	<main class="mx-auto max-w-2xl px-6 py-12">
-		<div class="grid gap-6">
-			<div class="grid gap-2">
-				<h1 class="text-2xl font-semibold tracking-tight">{restaurant.name}</h1>
-				<p class="text-muted-foreground">
-					Sesión como <span class="text-foreground font-medium">{email}</span>
-					· slug <span class="text-foreground font-medium">{restaurant.slug}</span>
-				</p>
-				<p class="text-muted-foreground text-sm">
-					Tenancy vía <code class="text-foreground">owner_restaurants</code> + RLS (DIG-13). Cookie
-					<code class="text-foreground">digimenu_owner</code> diferida.
-				</p>
-			</div>
-
-			<form method="POST" action={actions.auth.signOut}>
-				<Button type="submit" variant="outline">Cerrar sesión</Button>
-			</form>
-
-			{
-				signOutResult?.error && (
-					<p class="text-sm text-error-foreground" role="alert">
-						{signOutResult.error.message}
-					</p>
-				)
-			}
+<Dashboard
+	title="DigiMenu — Resumen"
+	email={email}
+	restaurantSlug={restaurant.slug}
+	restaurantName={restaurant.name}
+>
+	<div class="mx-auto flex max-w-4xl flex-col gap-4">
+		<div>
+			<h1 class="text-2xl font-semibold tracking-tight">Resumen</h1>
+			<p class="text-muted-foreground">
+				{restaurant.name}
+				<span class="text-muted-foreground/80"> · </span>
+				<code class="text-sm">/m/{restaurant.slug}</code>
+			</p>
 		</div>
-	</main>
+		<p class="text-muted-foreground text-sm">
+			Panel del restaurante. El CRUD de menús y productos llega en los próximos tickets de Phase 2.
+		</p>
+		{
+			signOutResult?.error && (
+				<p class="text-sm text-error-foreground" role="alert">
+					{signOutResult.error.message}
+				</p>
+			)
+		}
+	</div>
 </Dashboard>

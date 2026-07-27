@@ -19,6 +19,30 @@
     {
       "name": "label",
       "version": "1.2.2"
+    },
+    {
+      "name": "dialog",
+      "version": "1.5.0"
+    },
+    {
+      "name": "separator",
+      "version": "1.0.2"
+    },
+    {
+      "name": "sheet",
+      "version": "1.2.0"
+    },
+    {
+      "name": "skeleton",
+      "version": "1.2.2"
+    },
+    {
+      "name": "tooltip",
+      "version": "1.5.2"
+    },
+    {
+      "name": "sidebar",
+      "version": "1.0.3"
     }
   ]
 }
