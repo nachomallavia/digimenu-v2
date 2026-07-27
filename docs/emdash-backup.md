@@ -6,7 +6,7 @@ Relative from digimenu-v2: `../digimenu/backups/emdash-2026-07-26/`
 
 Source (per upstream README): Cloudflare D1 `digimenu-db` via `wrangler d1 execute --remote` on **2026-07-26**.
 
-**Restore into DigiMenu v2 is out of scope here** — mapping/import is DIG-14 / Phase 2 after schema ([docs/schema.md](./schema.md)).
+**Restore into DigiMenu v2:** mapping plan in [csv-import-plan.md](./csv-import-plan.md); synthetic demo seed in [seed.md](./seed.md) (DIG-14). Full CSV restore is later.
 
 ## Entity counts
 
