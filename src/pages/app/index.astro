@@ -1,10 +1,43 @@
 ---
+import { actions } from "astro:actions";
+import { Button } from "@/components/starwind/button";
 import Dashboard from "@/layouts/Dashboard.astro";
+import { requireUser } from "@/lib/server/auth";
+
+const signOutResult = Astro.getActionResult(actions.auth.signOut);
+if (signOutResult && !signOutResult.error) {
+	return Astro.redirect("/app/login");
+}
+
+const auth = await requireUser(Astro);
+if (auth instanceof Response) return auth;
+const user = auth;
 ---
 
 <Dashboard title="DigiMenu — App">
 	<main class="mx-auto max-w-2xl px-6 py-12">
-		<h1 class="text-2xl font-semibold tracking-tight">App del dueño</h1>
-		<p class="text-muted-foreground mt-2">Placeholder — auth y CRUD llegan en Phase 0–2.</p>
+		<div class="grid gap-6">
+			<div class="grid gap-2">
+				<h1 class="text-2xl font-semibold tracking-tight">App del dueño</h1>
+				<p class="text-muted-foreground">
+					Sesión activa como <span class="text-foreground font-medium">{user.email}</span>.
+				</p>
+				<p class="text-muted-foreground text-sm">
+					CRUD y tenancy llegan en Phase 1–2. Auth magic link: DIG-3.
+				</p>
+			</div>
+
+			<form method="POST" action={actions.auth.signOut}>
+				<Button type="submit" variant="outline">Cerrar sesión</Button>
+			</form>
+
+			{
+				signOutResult?.error && (
+					<p class="text-sm text-error-foreground" role="alert">
+						{signOutResult.error.message}
+					</p>
+				)
+			}
+		</div>
 	</main>
 </Dashboard>

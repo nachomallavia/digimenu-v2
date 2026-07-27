@@ -1,0 +1,72 @@
+---
+import { actions } from "astro:actions";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+import AppGuest from "@/layouts/AppGuest.astro";
+
+const result = Astro.getActionResult(actions.auth.sendMagicLink);
+if (result && !result.error) {
+	return Astro.redirect("/app/login?sent=1");
+}
+
+if (Astro.locals.user) {
+	return Astro.redirect("/app");
+}
+
+const sent = Astro.url.searchParams.get("sent") === "1";
+const urlError = Astro.url.searchParams.get("error");
+---
+
+<AppGuest title="DigiMenu — Acceso">
+	<div class="grid gap-6">
+		<div class="grid gap-2">
+			<p class="text-muted-foreground text-sm tracking-wide uppercase">DigiMenu</p>
+			<h1 class="text-2xl font-semibold tracking-tight">Ingresar</h1>
+			<p class="text-muted-foreground text-sm">
+				Te enviamos un magic link por email. Sin contraseña.
+			</p>
+		</div>
+
+		{
+			sent && (
+				<p class="text-sm text-foreground rounded-md border border-border bg-muted/40 px-3 py-2" role="status">
+					Revisá tu correo y abrí el enlace para continuar.
+				</p>
+			)
+		}
+		{
+			urlError && (
+				<p class="text-sm text-error-foreground" role="alert">
+					No se pudo completar el acceso. Pedí un enlace nuevo.
+				</p>
+			)
+		}
+		{
+			result?.error && (
+				<p class="text-sm text-error-foreground" role="alert">
+					{result.error.message}
+				</p>
+			)
+		}
+
+		<form method="POST" action={actions.auth.sendMagicLink} class="grid gap-4">
+			<div class="grid gap-2">
+				<Label for="email">Email</Label>
+				<Input
+					id="email"
+					name="email"
+					type="email"
+					autocomplete="email"
+					required
+					placeholder="vos@restaurante.com"
+				/>
+			</div>
+			<Button type="submit" class="w-full">Enviar magic link</Button>
+		</form>
+
+		<p class="text-muted-foreground text-center text-sm">
+			<a href="/" class="underline underline-offset-4 hover:text-foreground">Volver al inicio</a>
+		</p>
+	</div>
+</AppGuest>
