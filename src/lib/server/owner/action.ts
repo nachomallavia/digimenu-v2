@@ -2,6 +2,7 @@ import { ActionError } from "astro:actions";
 import type { ActionAPIContext } from "astro:actions";
 import type { OwnerContext } from "@/lib/server/auth";
 import { DbError, listRestaurantsForUser } from "@/lib/server/db";
+import { revalidateRestaurantPublicMenu } from "@/lib/server/menu";
 import type { Restaurant } from "@/lib/domain";
 
 function toOwnerRestaurant(row: Restaurant): OwnerContext["restaurant"] {
@@ -47,6 +48,19 @@ export async function requireOwnerAction(context: ActionAPIContext): Promise<Own
 			message: "No se pudo verificar el restaurante.",
 		});
 	}
+}
+
+/** Soft-invalidate public `/m/*` CDN cache for this restaurant (DIG-26). */
+export async function bustPublicMenuCache(
+	context: ActionAPIContext,
+	restaurantId: string,
+): Promise<void> {
+	type CacheApi = {
+		enabled: boolean;
+		invalidate: (options: { tags: string[] }) => Promise<void>;
+	};
+	const cache = (context as ActionAPIContext & { cache?: CacheApi }).cache;
+	await revalidateRestaurantPublicMenu(cache, restaurantId);
 }
 
 /** Map DbError (and unknown) to ActionError for handlers. */

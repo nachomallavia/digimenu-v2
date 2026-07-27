@@ -29,4 +29,4 @@ export {
 	type NewNamePreview,
 } from "./products-csv";
 
-export { requireOwnerAction, toActionError } from "./action";
+export { requireOwnerAction, bustPublicMenuCache, toActionError } from "./action";

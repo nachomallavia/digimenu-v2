@@ -9,6 +9,7 @@ import {
 import { getRestaurantById, updateRestaurant } from "@/lib/server/db";
 import {
 	removeMediaByPublicUrl,
+	bustPublicMenuCache,
 	requireOwnerAction,
 	toActionError,
 	uploadMedia,
@@ -42,6 +43,7 @@ export const restaurant = {
 					name: input.name,
 					description: input.description ?? null,
 				});
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { ok: true as const, section: "basics" as const };
 			} catch (err) {
 				toActionError(err, "No se pudieron guardar los datos.");
@@ -69,6 +71,7 @@ export const restaurant = {
 					await updateRestaurant(context.locals.supabase, owner.restaurant.id, {
 						brand: brand as unknown as JsonObject,
 					});
+					await bustPublicMenuCache(context, owner.restaurant.id);
 					return { ok: true as const, section: "brand" as const };
 				}
 
@@ -78,6 +81,7 @@ export const restaurant = {
 					await updateRestaurant(context.locals.supabase, owner.restaurant.id, {
 						theme: theme as unknown as JsonObject,
 					});
+					await bustPublicMenuCache(context, owner.restaurant.id);
 					return { ok: true as const, section: "theme" as const };
 				}
 
@@ -133,6 +137,7 @@ export const restaurant = {
 					}
 				}
 
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { ok: true as const, mode: input.mode, publicUrl };
 			} catch (err) {
 				toActionError(err, "No se pudo subir el logo.");
@@ -172,6 +177,7 @@ export const restaurant = {
 					}
 				}
 
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { ok: true as const, mode: input.mode };
 			} catch (err) {
 				toActionError(err, "No se pudo quitar el logo.");

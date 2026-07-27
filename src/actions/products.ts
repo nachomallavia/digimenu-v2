@@ -14,6 +14,7 @@ import {
 } from "@/lib/server/db";
 import {
 	batchUpdateProducts,
+	bustPublicMenuCache,
 	exportProductsCsv,
 	importProductsCsv,
 	parseNameResolutions,
@@ -185,6 +186,7 @@ export const products = {
 					await syncProductMenuMembership(supabase, restaurantId, row.id, menuIds);
 				}
 
+				await bustPublicMenuCache(context, restaurantId);
 				return { id: row.id, slug: row.slug };
 			} catch (err) {
 				toActionError(err, "No se pudo crear el producto.");
@@ -265,6 +267,7 @@ export const products = {
 					}
 				}
 
+				await bustPublicMenuCache(context, restaurantId);
 				return { id: row.id, slug: row.slug };
 			} catch (err) {
 				toActionError(err, "No se pudo actualizar el producto.");
@@ -293,6 +296,7 @@ export const products = {
 						console.error("[products.delete] image cleanup", err);
 					}
 				}
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { ok: true as const };
 			} catch (err) {
 				toActionError(err, "No se pudo eliminar el producto.");
@@ -321,6 +325,7 @@ export const products = {
 						console.error("[products.deleteJson] image cleanup", err);
 					}
 				}
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { ok: true as const };
 			} catch (err) {
 				toActionError(err, "No se pudo eliminar el producto.");
@@ -350,6 +355,7 @@ export const products = {
 					owner.restaurant.id,
 					changes,
 				);
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return result;
 			} catch (err) {
 				toActionError(err, "No se pudieron guardar los cambios.");
@@ -392,6 +398,7 @@ export const products = {
 						console.error("[products.uploadImage] cleanup", err);
 					}
 				}
+				await bustPublicMenuCache(context, restaurantId);
 				return { ok: true as const, image_url: row.image_url };
 			} catch (err) {
 				toActionError(err, "No se pudo subir la imagen.");
@@ -419,6 +426,7 @@ export const products = {
 				} catch (err) {
 					console.error("[products.removeImage] cleanup", err);
 				}
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { ok: true as const };
 			} catch (err) {
 				toActionError(err, "No se pudo quitar la imagen.");
@@ -446,6 +454,7 @@ export const products = {
 					productId,
 					ownedTags,
 				);
+				await bustPublicMenuCache(context, restaurantId);
 				return { ok: true as const, count: rows.length };
 			} catch (err) {
 				toActionError(err, "No se pudieron actualizar las etiquetas.");
@@ -473,6 +482,7 @@ export const products = {
 					productId,
 					ownedMenus,
 				);
+				await bustPublicMenuCache(context, restaurantId);
 				return { ok: true as const, count: ownedMenus.length };
 			} catch (err) {
 				toActionError(err, "No se pudieron actualizar los menús.");
@@ -567,6 +577,7 @@ export const products = {
 						message: result.failed[0]!.error,
 					});
 				}
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return result;
 			} catch (err) {
 				toActionError(err, "No se pudo importar el CSV.");

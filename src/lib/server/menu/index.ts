@@ -22,3 +22,7 @@ export {
 	type PreparePublicMenuPageOpts,
 	type PreparedPublicMenuPage,
 } from "./prepare-public-menu-page";
+export {
+	revalidateRestaurantPublicMenu,
+	restaurantPublicMenuTag,
+} from "./revalidate";

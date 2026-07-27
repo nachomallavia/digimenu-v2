@@ -166,7 +166,7 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 ### Live collections & cache
 
 - Astro **live collections:** explore later; do not block Phase 0–1 scaffold. If adopted, loaders must be thin wrappers over `lib/server/*` (no second data layer).
-- Public cache / ISR-style revalidation: investigate in Phase 3 ([DIG-26](https://linear.app/cheij-lab/issue/DIG-26)); no Cloudflare Cache API patterns.
+- Public `/m/*` CDN cache: Astro `cacheVercel()` + tag `restaurant:{id}` + soft invalidate from owner Actions — see [`docs/cache.md`](docs/cache.md) (DIG-26 Done).
 
 ## What we will NOT port from EmDash
 
@@ -187,7 +187,7 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 | Multi-template gallery | Phase 4 (Classic only through CP3; registry can exist minimal) |
 | Full schema column list | Done — see `docs/schema.md` (DIG-10) |
 | Live collections adoption | Spike when useful |
-| Vercel cache / ISR details | Phase 3 DIG-26 |
+| Vercel public `/m/*` cache | Done — see `docs/cache.md` (DIG-26) |
 
 ## Agent working agreement
 
@@ -212,3 +212,4 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 | 2026-07-27 | DIG-15 CP1 PASS: schema/RLS/db/tenancy/seed verified — see `docs/cp1.md` |
 | 2026-07-27 | DIG-22 CP2 PASS + GO Phase 3: owner `/app` feature parity — see `docs/parity-owner.md` (Resumen counts / legacy redirects as follow-ups) |
 | 2026-07-27 | Public plantillas: Tailwind only (same as `/app`); brand via CSS vars on `Menu.astro`; no scoped CSS for new templates — see Domain rules + `components/menu/menu.md` |
+| 2026-07-27 | DIG-26: Vercel CDN cache for `/m/*` (`cacheVercel`, tags `restaurant:{id}`, soft invalidate from owner Actions) — see `docs/cache.md` |

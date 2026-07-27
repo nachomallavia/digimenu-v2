@@ -8,7 +8,11 @@ import {
 	getTagBySlug,
 	updateTag,
 } from "@/lib/server/db";
-import { requireOwnerAction, toActionError } from "@/lib/server/owner";
+import {
+	bustPublicMenuCache,
+	requireOwnerAction,
+	toActionError,
+} from "@/lib/server/owner";
 
 function parseIcon(raw: string | null | undefined): string | null {
 	const trimmed = raw?.trim() ?? "";
@@ -66,6 +70,7 @@ export const tags = {
 					name: input.name,
 					icon,
 				});
+				await bustPublicMenuCache(context, restaurantId);
 				return { id: row.id, slug: row.slug };
 			} catch (err) {
 				toActionError(err, "No se pudo crear la etiqueta.");
@@ -91,6 +96,7 @@ export const tags = {
 					name: input.name,
 					icon,
 				});
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { id: row.id, slug: row.slug };
 			} catch (err) {
 				toActionError(err, "No se pudo actualizar la etiqueta.");
@@ -111,6 +117,7 @@ export const tags = {
 				const current = await ownedTag(supabase, owner.restaurant.id, id);
 				// product_tags → ON DELETE CASCADE (no manual strip)
 				await deleteTag(supabase, current.id);
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { ok: true as const };
 			} catch (err) {
 				toActionError(err, "No se pudo eliminar la etiqueta.");

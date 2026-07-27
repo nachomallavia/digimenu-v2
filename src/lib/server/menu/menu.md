@@ -20,16 +20,26 @@ import {
 | [`load-public-menu.ts`](./load-public-menu.ts) | `loadPublicRestaurant`, `findMenuBySlug` via `lib/server/db` + RLS |
 | [`view-model.ts`](./view-model.ts) | `buildMenuViewModel` — sections, chips, membership |
 | [`membership.ts`](./membership.ts) | `menu_products` → product↔menu map + sole/synthetic fallbacks |
-| [`prepare-public-menu-page.ts`](./prepare-public-menu-page.ts) | Shared `/m/[restaurant]` (+ `/{menu}`) orchestration |
+| [`prepare-public-menu-page.ts`](./prepare-public-menu-page.ts) | Shared `/m/[restaurant]` (+ `/{menu}`) orchestration; tags CDN cache `restaurant:{id}` when enabled |
+| [`revalidate.ts`](./revalidate.ts) | `revalidateRestaurantPublicMenu` / `restaurantPublicMenuTag` — soft tag invalidate (DIG-26) |
 | [`types.ts`](./types.ts) | `MenuViewModel`, `PublicRestaurantLoad` (English fields) |
 
 ## Behaviour notes
 
-- No EmDash, no Cloudflare cache hints (DIG-26 later).
+- Public HTML CDN via Astro + `cacheVercel()` — see [`docs/cache.md`](../../../docs/cache.md). No Cloudflare Cache API / no in-process catalog cache.
 - Membership from `menu_products` junctions (not JSON arrays).
 - Zero DB menus → synthetic “Carta” (`hasDbMenus: false`, treat empty as all products).
 - Multi-menu → `clientMenuSwitch: true` (full catalog in view-model for client switch).
 - Filters `active` defensively; exposes `available` on product views.
+
+## Cache (DIG-26)
+
+```ts
+import { revalidateRestaurantPublicMenu } from "@/lib/server/menu";
+// Owner Actions prefer:
+import { bustPublicMenuCache } from "@/lib/server/owner";
+await bustPublicMenuCache(context, restaurantId);
+```
 
 ## Call pattern (pages)
 

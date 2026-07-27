@@ -15,7 +15,11 @@ import {
 	setMenuProducts,
 	updateMenu,
 } from "@/lib/server/db";
-import { requireOwnerAction, toActionError } from "@/lib/server/owner";
+import {
+	bustPublicMenuCache,
+	requireOwnerAction,
+	toActionError,
+} from "@/lib/server/owner";
 
 function parseIcon(raw: string | null | undefined): string | null {
 	const trimmed = raw?.trim() ?? "";
@@ -83,6 +87,7 @@ export const menus = {
 					template,
 					sort_order: maxOrder + 1,
 				});
+				await bustPublicMenuCache(context, restaurantId);
 				return { id: row.id, slug: row.slug };
 			} catch (err) {
 				toActionError(err, "No se pudo crear el menú.");
@@ -122,6 +127,7 @@ export const menus = {
 				}
 
 				const row = await updateMenu(supabase, current.id, patch);
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { id: row.id, slug: row.slug };
 			} catch (err) {
 				toActionError(err, "No se pudo actualizar el menú.");
@@ -150,6 +156,7 @@ export const menus = {
 				}
 				// menu_products → ON DELETE CASCADE
 				await deleteMenu(supabase, current.id);
+				await bustPublicMenuCache(context, restaurantId);
 				return { ok: true as const };
 			} catch (err) {
 				toActionError(err, "No se pudo eliminar el menú.");
@@ -183,6 +190,7 @@ export const menus = {
 				const b = list[swapWith]!;
 				await updateMenu(supabase, a.id, { sort_order: b.sort_order });
 				await updateMenu(supabase, b.id, { sort_order: a.sort_order });
+				await bustPublicMenuCache(context, restaurantId);
 				return { ok: true as const };
 			} catch (err) {
 				toActionError(err, "No se pudo reordenar el menú.");
@@ -209,6 +217,7 @@ export const menus = {
 					...new Set(productIds.filter((id) => owned.has(id))),
 				];
 				const rows = await setMenuProducts(supabase, restaurantId, menuId, ordered);
+				await bustPublicMenuCache(context, restaurantId);
 				return { ok: true as const, count: rows.length };
 			} catch (err) {
 				toActionError(err, "No se pudo actualizar la lista de productos.");

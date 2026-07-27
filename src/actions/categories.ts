@@ -10,6 +10,7 @@ import {
 	updateCategory,
 } from "@/lib/server/db";
 import {
+	bustPublicMenuCache,
 	removeMediaByPublicUrl,
 	requireOwnerAction,
 	toActionError,
@@ -95,6 +96,7 @@ export const categories = {
 					sort_order: maxOrder + 1,
 					cover_url,
 				});
+				await bustPublicMenuCache(context, restaurantId);
 				return { id: row.id, slug: row.slug };
 			} catch (err) {
 				toActionError(err, "No se pudo crear la categoría.");
@@ -152,6 +154,7 @@ export const categories = {
 					}
 				}
 
+				await bustPublicMenuCache(context, restaurantId);
 				return { id: row.id, slug: row.slug };
 			} catch (err) {
 				toActionError(err, "No se pudo actualizar la categoría.");
@@ -180,6 +183,7 @@ export const categories = {
 						console.error("[categories.delete] cover cleanup", err);
 					}
 				}
+				await bustPublicMenuCache(context, owner.restaurant.id);
 				return { ok: true as const };
 			} catch (err) {
 				toActionError(err, "No se pudo eliminar la categoría.");
@@ -216,6 +220,7 @@ export const categories = {
 
 				await updateCategory(supabase, a.id, { sort_order: orderB });
 				await updateCategory(supabase, b.id, { sort_order: orderA });
+				await bustPublicMenuCache(context, restaurantId);
 				return { ok: true as const };
 			} catch (err) {
 				toActionError(err, "No se pudo reordenar la categoría.");

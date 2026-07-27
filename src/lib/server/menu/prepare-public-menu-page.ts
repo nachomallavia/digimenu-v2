@@ -13,6 +13,7 @@ type AstroLike = {
 	url: APIContext["url"];
 	rewrite: APIContext["rewrite"];
 	redirect: APIContext["redirect"];
+	cache?: APIContext["cache"];
 };
 
 export type PreparePublicMenuPageOpts = {
@@ -66,6 +67,12 @@ export async function preparePublicMenuPage(
 
 	const multiMenu = loaded.menus.length > 1;
 	const viewModel = buildMenuViewModel({ loaded, activeMenu });
+
+	if (Astro.cache?.enabled) {
+		Astro.cache.set({
+			tags: [`restaurant:${loaded.restaurantId}`],
+		});
+	}
 
 	const title = opts.menuSlug
 		? `${loaded.restaurant.name} — ${activeMenu.name}`
