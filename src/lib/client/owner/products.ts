@@ -1,5 +1,6 @@
 import { atom, computed, map, type MapStore, type ReadableAtom } from "nanostores";
 import { actions } from "astro:actions";
+import { bindProductsCsv } from "./products-csv";
 
 /** Scalar patch values used in owner list editors. */
 type PatchValue = string | number | boolean | null;
@@ -160,6 +161,7 @@ export function bootProductosEditor(): void {
 	const rowImageInput = root.querySelector<HTMLInputElement>("[data-row-image-file]");
 
 	if (toastHost) bindToastHost(toastHost);
+	bindProductsCsv(root, showToast);
 
 	searchQuery.set("");
 	categoryFilter.set("");

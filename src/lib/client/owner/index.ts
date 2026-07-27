@@ -8,3 +8,4 @@ export {
 } from "./categories";
 export { bootMenuProducts } from "./menus";
 export { bootProductosEditor } from "./products";
+export { bindProductsCsv } from "./products-csv";

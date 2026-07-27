@@ -14,6 +14,10 @@ import {
 } from "@/lib/server/db";
 import {
 	batchUpdateProducts,
+	exportProductsCsv,
+	importProductsCsv,
+	parseNameResolutions,
+	previewProductsCsvImport,
 	removeMediaByPublicUrl,
 	requireOwnerAction,
 	syncProductMenuMembership,
@@ -472,6 +476,100 @@ export const products = {
 				return { ok: true as const, count: ownedMenus.length };
 			} catch (err) {
 				toActionError(err, "No se pudieron actualizar los menús.");
+			}
+		},
+	}),
+
+	exportCsv: defineAction({
+		accept: "json",
+		input: z.object({}).optional(),
+		handler: async (_input, context) => {
+			const owner = await requireOwnerAction(context);
+			const supabase = context.locals.supabase;
+			try {
+				const csv = await exportProductsCsv(supabase, owner.restaurant.id);
+				const slug = owner.restaurant.slug || "productos";
+				return {
+					csv,
+					filename: `${slug}-productos.csv`,
+				};
+			} catch (err) {
+				toActionError(err, "No se pudo exportar el CSV.");
+			}
+		},
+	}),
+
+	previewCsvImport: defineAction({
+		accept: "json",
+		input: z.object({
+			csv: z.string().min(1),
+		}),
+		handler: async ({ csv }, context) => {
+			const owner = await requireOwnerAction(context);
+			const supabase = context.locals.supabase;
+			try {
+				const preview = await previewProductsCsvImport(
+					supabase,
+					owner.restaurant.id,
+					csv,
+				);
+				if (!preview.ok) {
+					throw new ActionError({
+						code: "BAD_REQUEST",
+						message: preview.error,
+					});
+				}
+				return preview;
+			} catch (err) {
+				toActionError(err, "No se pudo previsualizar el CSV.");
+			}
+		},
+	}),
+
+	importCsv: defineAction({
+		accept: "json",
+		input: z.object({
+			csv: z.string().min(1),
+			categoriaResolutions: z.record(z.string(), z.unknown()).default({}),
+			etiquetaResolutions: z.record(z.string(), z.unknown()).default({}),
+		}),
+		handler: async (
+			{ csv, categoriaResolutions, etiquetaResolutions },
+			context,
+		) => {
+			const owner = await requireOwnerAction(context);
+			const supabase = context.locals.supabase;
+			const catRes = parseNameResolutions(categoriaResolutions);
+			const tagRes = parseNameResolutions(etiquetaResolutions);
+			if (!catRes || !tagRes) {
+				throw new ActionError({
+					code: "BAD_REQUEST",
+					message: "Resoluciones de categorías/etiquetas inválidas.",
+				});
+			}
+			try {
+				const origin = new URL(context.request.url).origin;
+				const result = await importProductsCsv(supabase, {
+					restaurantId: owner.restaurant.id,
+					csv,
+					allowedOrigin: origin,
+					categoriaResolutions: catRes,
+					etiquetaResolutions: tagRes,
+				});
+				if (
+					result.failed.length === 1 &&
+					result.failed[0]!.row === 0 &&
+					result.created === 0 &&
+					result.updated === 0
+				) {
+					throw new ActionError({
+						code: "BAD_REQUEST",
+						message: result.failed[0]!.error,
+					});
+				}
+				return result;
+			} catch (err) {
+				toActionError(err, "No se pudo importar el CSV.");
 			}
 		},
 	}),

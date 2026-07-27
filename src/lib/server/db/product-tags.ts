@@ -14,6 +14,19 @@ export async function listProductTags(
 	return (data ?? []) as ProductTag[];
 }
 
+/** All product↔tag rows for a restaurant (CSV export). */
+export async function listProductTagsByRestaurant(
+	supabase: SupabaseClient,
+	restaurantId: string,
+): Promise<ProductTag[]> {
+	const { data, error } = await supabase
+		.from("product_tags")
+		.select("*")
+		.eq("restaurant_id", restaurantId);
+	throwOnError(error, "Failed to list product tags");
+	return (data ?? []) as ProductTag[];
+}
+
 /** Replace tags for a product. */
 export async function setProductTags(
 	supabase: SupabaseClient,

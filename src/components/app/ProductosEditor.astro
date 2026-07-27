@@ -1,6 +1,6 @@
 ---
 /**
- * Owner productos list: search, category filter, inline edit table, sticky save.
+ * Owner productos list: search, category filter, inline edit table, sticky save + CSV.
  */
 import PlusIcon from "@tabler/icons/outline/plus.svg";
 import SearchIcon from "@tabler/icons/outline/search.svg";
@@ -8,6 +8,15 @@ import type { Category, Product } from "@/lib/domain";
 import ProductoTableRow from "@/components/app/ProductoTableRow.astro";
 import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/starwind/dialog";
 
 type Props = {
 	products: Product[];
@@ -34,11 +43,61 @@ const {
 			<h1 class="text-2xl font-semibold tracking-tight">Productos</h1>
 			<p class="text-muted-foreground">Ítems del menú de tu restaurante.</p>
 		</div>
-		<Button variant="primary" href="/app/productos/new">
-			<PlusIcon class="size-4" />
-			Crear producto
-		</Button>
+		<div class="flex flex-wrap items-center gap-2">
+			<Button type="button" variant="outline" data-csv-download>Descargar CSV</Button>
+			<Button type="button" variant="outline" data-csv-upload>Subir CSV</Button>
+			<input type="file" accept=".csv,text/csv" hidden data-csv-file />
+			<Button variant="primary" href="/app/productos/new">
+				<PlusIcon class="size-4" />
+				Crear producto
+			</Button>
+		</div>
 	</div>
+
+	<Dialog id="productos-csv-confirm-dialog" data-csv-confirm-dialog>
+		<DialogContent class="max-w-lg">
+			<DialogHeader>
+				<DialogTitle>Confirmar importación CSV</DialogTitle>
+				<DialogDescription data-csv-confirm-description>
+					Revisá productos, categorías y etiquetas nuevas antes de continuar.
+				</DialogDescription>
+			</DialogHeader>
+			<div class="flex max-h-80 flex-col gap-4 overflow-y-auto py-2">
+				<div data-csv-new-productos-section hidden>
+					<p class="mb-2 text-sm font-medium" data-csv-new-productos-heading>
+						Productos nuevos
+					</p>
+					<ul
+						class="text-muted-foreground list-inside list-disc space-y-1 text-sm"
+						data-csv-new-productos-list
+					>
+					</ul>
+				</div>
+				<div data-csv-categorias-section hidden>
+					<p class="mb-2 text-sm font-medium">Categorías nuevas</p>
+					<p class="text-muted-foreground mb-2 text-sm">
+						Elegí crearlas o usar una categoría parecida existente.
+					</p>
+					<div class="flex flex-col gap-3" data-csv-categorias-list></div>
+				</div>
+				<div data-csv-etiquetas-section hidden>
+					<p class="mb-2 text-sm font-medium">Etiquetas nuevas</p>
+					<p class="text-muted-foreground mb-2 text-sm">
+						Elegí crearlas o usar una etiqueta parecida existente.
+					</p>
+					<div class="flex flex-col gap-3" data-csv-etiquetas-list></div>
+				</div>
+			</div>
+			<DialogFooter>
+				<DialogClose asChild>
+					<Button type="button" variant="outline" data-csv-confirm-cancel>Cancelar</Button>
+				</DialogClose>
+				<Button type="button" variant="primary" data-csv-confirm-continue>
+					Continuar importación
+				</Button>
+			</DialogFooter>
+		</DialogContent>
+	</Dialog>
 
 	<div class="flex w-full flex-wrap items-center justify-between gap-4">
 		<div class="relative w-full max-w-sm">

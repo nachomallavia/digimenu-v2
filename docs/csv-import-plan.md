@@ -61,6 +61,10 @@ Backup has media **ids** only (R2). Plan:
 - One-off script under `scripts/` using service role (never in browser).
 - Or Phase 2 DIG-21 only for **owner product** CSV roundtrip (different from EmDash dump restore).
 
+## DIG-21 owner product roundtrip (runtime)
+
+Owner `/app/productos` export/import is **not** this EmDash dump restore. It uses ES headers (`nombre`…`id_sig`), HMAC via `DIGIMENU_ID_HASH_SECRET`, name-based category/tag resolution with near-match dialog, and Storage URLs (fetch→reupload on change). See `lib/server/owner/products-csv.ts`.
+
 ## Acceptance for DIG-14
 
 - [x] This plan documented

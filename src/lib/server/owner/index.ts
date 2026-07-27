@@ -17,4 +17,16 @@ export {
 	type ProductBatchResult,
 } from "./products-batch";
 
+export {
+	exportProductsCsv,
+	importProductsCsv,
+	parseNameResolutions,
+	previewProductsCsvImport,
+	type CsvImportResult,
+	type CsvPreviewResult,
+	type NameResolution,
+	type NameResolutions,
+	type NewNamePreview,
+} from "./products-csv";
+
 export { requireOwnerAction, toActionError } from "./action";

@@ -12,6 +12,8 @@ interface ImportMetaEnv {
 	readonly PUBLIC_SUPABASE_ANON_KEY: string;
 	readonly SUPABASE_SERVICE_ROLE_KEY?: string;
 	readonly DIGIMENU_OWNER_COOKIE_SECRET?: string;
+	/** HMAC secret for product CSV id signatures (DIG-21). */
+	readonly DIGIMENU_ID_HASH_SECRET?: string;
 }
 
 interface ImportMeta {

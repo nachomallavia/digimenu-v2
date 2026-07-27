@@ -48,5 +48,9 @@ export {
 	listMenuProductsByProduct,
 	setMenuProducts,
 } from "./menu-products";
-export { listProductTags, setProductTags } from "./product-tags";
+export {
+	listProductTags,
+	listProductTagsByRestaurant,
+	setProductTags,
+} from "./product-tags";
 export { listOwnerRestaurantIds, listRestaurantsForUser } from "./owner-restaurants";
