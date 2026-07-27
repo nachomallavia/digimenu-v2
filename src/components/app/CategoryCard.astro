@@ -1,0 +1,140 @@
+---
+import TrashIcon from "@tabler/icons/outline/trash.svg";
+import SaveIcon from "@tabler/icons/outline/device-floppy.svg";
+import ChevronUpIcon from "@tabler/icons/outline/chevron-up.svg";
+import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
+import { actions } from "astro:actions";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/starwind/card";
+import CategoryIconField from "@/components/app/CategoryIconField.astro";
+import CategoryCoverField from "@/components/app/CategoryCoverField.astro";
+import ConfirmDialog from "@/components/app/ConfirmDialog.astro";
+
+interface Props {
+	id: string;
+	slug: string;
+	name: string;
+	icon?: string | null;
+	coverUrl?: string | null;
+	canMoveUp?: boolean;
+	canMoveDown?: boolean;
+}
+
+const {
+	id,
+	slug,
+	name,
+	icon = null,
+	coverUrl = null,
+	canMoveUp = false,
+	canMoveDown = false,
+} = Astro.props;
+const coverSrc = coverUrl ?? "";
+const iconValue = icon ?? "";
+---
+
+<div
+	data-category-card={id}
+	data-original-name={name}
+	data-original-icon={iconValue}
+	data-original-has-cover={coverSrc ? "1" : "0"}
+	data-original-cover-src={coverSrc}
+>
+	<Card>
+		<CardHeader>
+			<div class="flex flex-wrap items-center gap-2">
+				<span class="inline-flex items-center px-2 py-0.5 text-xs font-medium text-muted-foreground">
+					{slug}
+				</span>
+				{
+					(canMoveUp || canMoveDown) && (
+						<div class="ml-auto flex gap-1">
+							<form method="POST" action={actions.categories.move} class="inline">
+								<input type="hidden" name="id" value={id} />
+								<input type="hidden" name="direction" value="up" />
+								<Button
+									type="submit"
+									variant="ghost"
+									size="sm"
+									disabled={!canMoveUp}
+									aria-label="Subir categoría"
+								>
+									<ChevronUpIcon class="size-4" />
+								</Button>
+							</form>
+							<form method="POST" action={actions.categories.move} class="inline">
+								<input type="hidden" name="id" value={id} />
+								<input type="hidden" name="direction" value="down" />
+								<Button
+									type="submit"
+									variant="ghost"
+									size="sm"
+									disabled={!canMoveDown}
+									aria-label="Bajar categoría"
+								>
+									<ChevronDownIcon class="size-4" />
+								</Button>
+							</form>
+						</div>
+					)
+				}
+			</div>
+		</CardHeader>
+
+		<form
+			method="POST"
+			action={actions.categories.update}
+			enctype="multipart/form-data"
+			class="flex flex-col gap-3"
+			data-category-save-form
+		>
+			<input type="hidden" name="id" value={id} />
+			<CardContent class="flex flex-col gap-3">
+				<div>
+					<Label for={`name-${id}`} class="text-sm font-light text-muted-foreground">Nombre</Label>
+					<Input
+						id={`name-${id}`}
+						type="text"
+						name="name"
+						required
+						value={name}
+						data-field="name"
+						class="mt-1 h-10 w-full rounded-md border border-border p-2"
+					/>
+				</div>
+
+				<CategoryIconField iconValue={iconValue} />
+				<CategoryCoverField id={id} name={name} coverSrc={coverSrc} />
+
+				<Button type="submit" variant="outline" size="sm" class="py-6" disabled data-save-category>
+					<span class="inline-flex items-center gap-2">
+						<SaveIcon class="size-5 shrink-0" aria-hidden="true" />
+						Guardar cambios
+					</span>
+				</Button>
+			</CardContent>
+		</form>
+
+		<div class="flex justify-center px-6 pb-4">
+			<ConfirmDialog
+				title="¿Eliminar categoría?"
+				description={`Se eliminará “${name}”. Los productos de esta categoría quedarán sin categoría. No se puede deshacer.`}
+			>
+				<Button slot="trigger" type="button" variant="secondary" size="sm">
+					<span class="inline-flex items-center gap-2 text-muted-foreground hover:text-red-500">
+						<TrashIcon class="size-5 shrink-0" aria-hidden="true" />
+						Eliminar categoría
+					</span>
+				</Button>
+				<form slot="confirm" method="POST" action={actions.categories.delete}>
+					<input type="hidden" name="id" value={id} />
+					<Button type="submit" variant="error" size="sm">
+						Eliminar
+					</Button>
+				</form>
+			</ConfirmDialog>
+		</div>
+	</Card>
+</div>

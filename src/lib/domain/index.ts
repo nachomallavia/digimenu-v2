@@ -54,3 +54,10 @@ export {
 	type ThemeMode,
 	type ThemeRadius,
 } from "./restaurant-theme";
+
+export {
+	CATEGORY_ICON_OPTIONS,
+	isCategoryIconId,
+	TAG_NAME_SUGGESTIONS,
+	type CategoryIconId,
+} from "./category-icons";

@@ -1,0 +1,44 @@
+---
+/**
+ * Generic confirm dialog for owner actions (remove cover, delete category, etc.).
+ * Use `slot="trigger"` for the open control and `slot="confirm"` for the confirm
+ * control or form (wrap with DialogClose when the confirm should dismiss the dialog).
+ */
+import { Button } from "@/components/starwind/button";
+import {
+	Dialog,
+	DialogClose,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/starwind/dialog";
+
+interface Props {
+	title: string;
+	description: string;
+	cancelLabel?: string;
+}
+
+const { title, description, cancelLabel = "Cancelar" } = Astro.props;
+---
+
+<Dialog>
+	<DialogTrigger asChild>
+		<slot name="trigger" />
+	</DialogTrigger>
+	<DialogContent class="max-w-md">
+		<DialogHeader>
+			<DialogTitle>{title}</DialogTitle>
+			<DialogDescription>{description}</DialogDescription>
+		</DialogHeader>
+		<DialogFooter>
+			<DialogClose asChild>
+				<Button type="button" variant="outline" size="sm">{cancelLabel}</Button>
+			</DialogClose>
+			<slot name="confirm" />
+		</DialogFooter>
+	</DialogContent>
+</Dialog>

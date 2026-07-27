@@ -1,6 +1,6 @@
 # `lib/client/owner`
 
-Browser-only owner UI state (pending edits, toasts) via Nanostores.
+Browser-only owner UI state (pending edits, toasts) via Nanostores / DOM helpers.
 
 Must not import `lib/server/*`. Mutations go through Astro Actions.
 
@@ -9,3 +9,6 @@ Must not import `lib/server/*`. Mutations go through Astro Actions.
 | Export | Role |
 |--------|------|
 | `bindLogoPreviews` / `bindBrandForm` | `/app/info` logo file previews + dynamic brand color/font rows (DIG-17) |
+| `initCategoryCards` | Dirty-state + cover preview for category cards (DIG-19) |
+| `bindIconPreview` | Sync icon preview on Starwind Select change |
+| `bindSuggestChips` | Fill inputs from `[data-suggest]` chips |

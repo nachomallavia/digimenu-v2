@@ -22,3 +22,7 @@ Pure types and helpers (no I/O): brand/theme parsers, shared domain shapes.
 ## Slugs (Phase 2)
 
 [`slug.ts`](./slug.ts) — `slugify` / `slugFromName` for owner creates (menus, categories, tags, products). Uniqueness is enforced per restaurant in Postgres.
+
+## Category / tag icons (DIG-19)
+
+[`category-icons.ts`](./category-icons.ts) — curated Tabler outline ids + `isCategoryIconId` + tag name suggestions. Pure data for owner pickers.

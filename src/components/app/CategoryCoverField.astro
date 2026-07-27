@@ -1,0 +1,82 @@
+---
+import { Button } from "@/components/starwind/button";
+import { Label } from "@/components/starwind/label";
+import ConfirmDialog from "@/components/app/ConfirmDialog.astro";
+import { DialogClose } from "@/components/starwind/dialog";
+
+interface Props {
+	id: string;
+	name: string;
+	coverSrc: string;
+	canWrite?: boolean;
+}
+
+const { id, name, coverSrc, canWrite = true } = Astro.props;
+---
+
+<div class="flex flex-col gap-2">
+	<div class="flex items-center justify-between">
+		<Label class="text-sm font-light text-muted-foreground">Portada (opcional)</Label>
+		<div
+			class:list={["flex flex-col gap-2", !coverSrc && "hidden"]}
+			data-remove-cover-actions
+		>
+			<div data-remove-cover-idle>
+				<ConfirmDialog
+					title="¿Quitar portada?"
+					description={`Se quitará la portada de “${name}” al guardar. Podés deshacer antes de guardar.`}
+				>
+					<Button slot="trigger" type="button" variant="ghost" size="sm" disabled={!canWrite}>
+						Quitar portada
+					</Button>
+					<DialogClose slot="confirm" asChild>
+						<Button
+							type="button"
+							variant="error"
+							size="sm"
+							disabled={!canWrite}
+							data-confirm-remove-cover
+						>
+							Quitar
+						</Button>
+					</DialogClose>
+				</ConfirmDialog>
+			</div>
+			<div data-remove-cover-pending class="hidden">
+				<Button type="button" variant="ghost" size="sm" disabled={!canWrite} data-undo-remove-cover>
+					Deshacer quitar portada
+				</Button>
+			</div>
+		</div>
+	</div>
+	<img
+		data-cover-preview
+		src={coverSrc || undefined}
+		alt={name}
+		hidden={!coverSrc}
+		class="h-24 w-full rounded-md border border-border object-cover"
+	/>
+	<input type="hidden" name="remove_cover" value="" data-field="remove_cover" />
+	<div class="flex flex-wrap items-center gap-2">
+		<input
+			id={`cover-${id}`}
+			name="cover"
+			type="file"
+			accept="image/*"
+			disabled={!canWrite}
+			data-field="cover"
+			class="sr-only"
+		/>
+		<Button
+			type="button"
+			variant="outline"
+			size="sm"
+			disabled={!canWrite}
+			data-cover-pick
+			class="w-full"
+		>
+			Elegir nueva imagen
+		</Button>
+		<span data-cover-filename class="text-muted-foreground text-sm"></span>
+	</div>
+</div>
