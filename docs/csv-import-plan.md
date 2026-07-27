@@ -1,6 +1,6 @@
 # CSV import plan (DIG-14) — EmDash backup → DigiMenu v2
 
-**Status:** plan only. No importer in this issue. Owner product CSV UI → [DIG-21](https://linear.app/cheij-lab/issue/DIG-21). Full restore is a later one-off/script, not Alpha runtime.
+**Status:** plan + one-off restore script. No runtime EmDash importer in the app. Owner product CSV UI → [DIG-21](https://linear.app/cheij-lab/issue/DIG-21).
 
 Canonical files: `../digimenu/backups/emdash-2026-07-26/` — inventory in [emdash-backup.md](./emdash-backup.md). Target schema: [schema.md](./schema.md).
 
@@ -60,6 +60,28 @@ Backup has media **ids** only (R2). Plan:
 
 - One-off script under `scripts/` using service role (never in browser).
 - Or Phase 2 DIG-21 only for **owner product** CSV roundtrip (different from EmDash dump restore).
+
+## Runbook — Finca restore (DIG-29 prep)
+
+Script: [`scripts/restore-finca-from-emdash.mjs`](../scripts/restore-finca-from-emdash.mjs)
+
+Requires `PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` in `.env`. Backup path defaults to `../digimenu/backups/emdash-2026-07-26/`.
+
+```bash
+# Catalog already present (attach logos/covers/product images only)
+node scripts/restore-finca-from-emdash.mjs --media-only
+
+# Full wipe + reimport slug finca (preserves prior owner_restaurants user if any)
+node scripts/restore-finca-from-emdash.mjs --force
+# or: --force --owner-user-id <auth-uuid>
+
+# Catalog only
+node scripts/restore-finca-from-emdash.mjs --force --skip-media
+```
+
+Media resolution order: `productos-4x5` via `finca-image-map.json` → `tmp/demo-images/{filename}` → Worker `/_emdash/api/media/file/{storageKey}` → `wrangler r2 object get` (needs `CLOUDFLARE_API_TOKEN`).
+
+After media changes, public CDN may briefly serve stale HTML (DIG-26 soft tags); next guest hit revalidates. Smoke: `/m/finca` and `/m/finca/carta`.
 
 ## DIG-21 owner product roundtrip (runtime)
 

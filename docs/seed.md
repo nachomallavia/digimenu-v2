@@ -45,4 +45,9 @@ See also [auth.md](../src/lib/server/auth/auth.md). If you already linked anothe
 
 ## EmDash / CSV restore
 
-Full backup mapping plan: [csv-import-plan.md](./csv-import-plan.md). Inventory: [emdash-backup.md](./emdash-backup.md).
+Full backup mapping + Finca runbook: [csv-import-plan.md](./csv-import-plan.md). Inventory: [emdash-backup.md](./emdash-backup.md).
+
+```bash
+node scripts/restore-finca-from-emdash.mjs --media-only   # images onto existing finca
+node scripts/restore-finca-from-emdash.mjs --force        # wipe + full catalog + media
+```

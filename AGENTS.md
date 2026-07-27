@@ -213,3 +213,4 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 | 2026-07-27 | DIG-22 CP2 PASS + GO Phase 3: owner `/app` feature parity — see `docs/parity-owner.md` (Resumen counts / legacy redirects as follow-ups) |
 | 2026-07-27 | Public plantillas: Tailwind only (same as `/app`); brand via CSS vars on `Menu.astro`; no scoped CSS for new templates — see Domain rules + `components/menu/menu.md` |
 | 2026-07-27 | DIG-26: Vercel CDN cache for `/m/*` (`cacheVercel`, tags `restaurant:{id}`, soft invalidate from owner Actions) — see `docs/cache.md` |
+| 2026-07-27 | Finca restore script `scripts/restore-finca-from-emdash.mjs` (EmDash CSV + local/Worker media → Storage); runbook in `docs/csv-import-plan.md` |
