@@ -19,7 +19,7 @@ type RequireUserContext = {
 /**
  * Ensures a Supabase Auth user is present.
  * Returns the user, or a redirect Response to `/app/login`.
- * Restaurant tenancy (`digimenu_owner`) is DIG-13 — not checked here.
+ * Restaurant tenancy is `requireOwner` (DIG-13) — not checked here.
  */
 export async function requireUser(
 	context: RequireUserContext,

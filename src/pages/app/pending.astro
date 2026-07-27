@@ -1,0 +1,54 @@
+---
+import { actions } from "astro:actions";
+import { Button } from "@/components/starwind/button";
+import AppGuest from "@/layouts/AppGuest.astro";
+
+if (!Astro.locals.user) {
+	return Astro.redirect("/app/login");
+}
+
+const lookupError = Astro.url.searchParams.get("error") === "lookup";
+const signOutResult = Astro.getActionResult(actions.auth.signOut);
+if (signOutResult && !signOutResult.error) {
+	return Astro.redirect("/app/login");
+}
+---
+
+<AppGuest title="DigiMenu — Pendiente">
+	<div class="grid gap-6">
+		<div class="grid gap-2">
+			<p class="text-muted-foreground text-sm tracking-wide uppercase">DigiMenu</p>
+			<h1 class="text-2xl font-semibold tracking-tight">Cuenta sin restaurant</h1>
+			<p class="text-muted-foreground text-sm">
+				Tu usuario está autenticado
+				{
+					Astro.locals.user.email && (
+						<>
+							{" "}
+							como{" "}
+							<span class="text-foreground font-medium">{Astro.locals.user.email}</span>
+						</>
+					)
+				}
+				, pero todavía no está vinculado a un restaurant. Pedile a un admin que cargue la fila
+				en <code class="text-foreground">owner_restaurants</code> (ver{" "}
+				<code class="text-foreground">auth.md</code>).
+			</p>
+			{
+				lookupError && (
+					<p class="text-sm text-error-foreground" role="alert">
+						No se pudo consultar el vínculo. Probá de nuevo o revisá los logs.
+					</p>
+				)
+			}
+		</div>
+
+		<form method="POST" action={actions.auth.signOut}>
+			<Button type="submit" variant="outline" class="w-full">Cerrar sesión</Button>
+		</form>
+
+		<p class="text-muted-foreground text-center text-sm">
+			<a href="/" class="underline underline-offset-4 hover:text-foreground">Volver al inicio</a>
+		</p>
+	</div>
+</AppGuest>

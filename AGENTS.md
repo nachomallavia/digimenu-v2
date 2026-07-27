@@ -62,7 +62,7 @@ src/
     domain/                      # pure types, brand/theme parsers (no I/O) + domain.md
     server/
       db/                        # Supabase queries/mutations + db.md
-      auth/                      # session, requireOwner, digimenu_owner cookie + auth.md
+      auth/                      # session, requireOwner + auth.md (cookie deferred)
       menu/                      # public loaders, view-model + menu.md
       owner/                     # CSV, batch orchestration + owner.md
     client/
@@ -135,7 +135,7 @@ erDiagram
 ```mermaid
 flowchart LR
   subgraph owner [Owner /app]
-    A[Supabase Auth magic link] --> B[SSR session + digimenu_owner cookie]
+    A[Supabase Auth magic link] --> B[SSR session + owner_restaurants]
     B --> C[Thin .astro page]
     C --> D[lib/server/db + Storage]
     C --> E[Astro Action]
@@ -155,7 +155,7 @@ flowchart LR
 | Service role | Seed/scripts only — **never** in public pages, Actions serving browsers, or client bundles |
 
 - Phase 0 auth: magic link only (OAuth later, Phase 4).
-- Keep a signed `digimenu_owner` cookie for tenancy convenience (no EmDash snapshot fields).
+- Tenancy: `requireOwner` loads restaurants via `owner_restaurants` (DIG-13). Signed `digimenu_owner` cookie **deferred** (Alpha uses session + DB lookup).
 - RLS by restaurant ownership via `owner_restaurants` from Phase 1.
 
 ### Mutations
@@ -206,3 +206,4 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 | 2026-07-27 | DIG-10: DB tables/columns English (`restaurants`, `menu_products`, …); CSV ES↔EN in import/export; `price numeric(12,2)`; flags `active`/`available`; see `docs/schema.md` |
 | 2026-07-27 | DIG-11: RLS via `owner_restaurants` + `is_restaurant_owner()`; anon reads active public rows; client restaurant INSERT deferred to DIG-27; see `docs/rls.md` |
 | 2026-07-27 | DIG-12: `lib/domain` row types + `lib/server/db` CRUD/junctions over SSR Supabase client; no EmDash |
+| 2026-07-27 | DIG-13: `requireOwner` via `owner_restaurants` + `/app/pending`; `digimenu_owner` cookie deferred |

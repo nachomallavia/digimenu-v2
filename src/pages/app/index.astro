@@ -2,43 +2,31 @@
 import { actions } from "astro:actions";
 import { Button } from "@/components/starwind/button";
 import Dashboard from "@/layouts/Dashboard.astro";
-import { requireUser } from "@/lib/server/auth";
-import { listRestaurantsForUser } from "@/lib/server/db";
+import { requireOwner } from "@/lib/server/auth";
 
 const signOutResult = Astro.getActionResult(actions.auth.signOut);
 if (signOutResult && !signOutResult.error) {
 	return Astro.redirect("/app/login");
 }
 
-const auth = await requireUser(Astro);
+const auth = await requireOwner(Astro);
 if (auth instanceof Response) return auth;
-const user = auth;
-
-const restaurants = await listRestaurantsForUser(Astro.locals.supabase, user.id);
+const { restaurant, email } = auth;
 ---
 
 <Dashboard title="DigiMenu — App">
 	<main class="mx-auto max-w-2xl px-6 py-12">
 		<div class="grid gap-6">
 			<div class="grid gap-2">
-				<h1 class="text-2xl font-semibold tracking-tight">App del dueño</h1>
+				<h1 class="text-2xl font-semibold tracking-tight">{restaurant.name}</h1>
 				<p class="text-muted-foreground">
-					Sesión activa como <span class="text-foreground font-medium">{user.email}</span>.
+					Sesión como <span class="text-foreground font-medium">{email}</span>
+					· slug <span class="text-foreground font-medium">{restaurant.slug}</span>
 				</p>
-				{
-					restaurants.length === 0 ? (
-						<p class="text-muted-foreground text-sm">
-							Sin restaurants vinculados — tenancy/cookie en DIG-13.
-						</p>
-					) : (
-						<p class="text-muted-foreground text-sm">
-							{restaurants.length} restaurant{restaurants.length === 1 ? "" : "s"}:{" "}
-							<span class="text-foreground font-medium">
-								{restaurants.map((r) => r.name).join(", ")}
-							</span>
-						</p>
-					)
-				}
+				<p class="text-muted-foreground text-sm">
+					Tenancy vía <code class="text-foreground">owner_restaurants</code> + RLS (DIG-13). Cookie
+					<code class="text-foreground">digimenu_owner</code> diferida.
+				</p>
 			</div>
 
 			<form method="POST" action={actions.auth.signOut}>
