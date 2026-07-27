@@ -67,6 +67,10 @@ Copy `.env.example` → `.env` (and mirror the same keys in Vercel).
 - Demo seed: **[docs/seed.md](./docs/seed.md)** (`supabase/seed/demo.sql`)
 - EmDash CSV mapping plan: **[docs/csv-import-plan.md](./docs/csv-import-plan.md)**
 
+### CP1 checkpoint (DIG-15)
+
+- Verdict PASS: **[docs/cp1.md](./docs/cp1.md)**
+
 ### EmDash backup (DIG-8)
 
 - Inventory + row counts: **[docs/emdash-backup.md](./docs/emdash-backup.md)**
@@ -90,7 +94,7 @@ Tracked in Linear: [DigiMenu v2](https://linear.app/cheij-lab/project/digimenu-v
 
 1. **Alpha** — repo + `AGENTS.md` ✅
 2. **Phase 0** — bootstrap ✅ (DIG-3–7; DIG-8 backup docs)
-3. **Phase 1** — domain + RLS (✅ DIG-10–14; checkpoint DIG-15)
+3. **Phase 1** — domain ready ✅ ([docs/cp1.md](./docs/cp1.md); DIG-10–15)
 4. **Phase 2** — owner `/app` parity
 5. **Phase 3** — public `/m/*` parity
 6. **Phase 4** — onboarding, OAuth, domains, templates
