@@ -1,0 +1,215 @@
+---
+/**
+ * Shared product fields for new + edit forms.
+ */
+import type { Category, Menu, Tag } from "@/lib/domain";
+import { Input } from "@/components/starwind/input";
+import { Label } from "@/components/starwind/label";
+import { Textarea } from "@/components/starwind/textarea";
+
+interface Props {
+	name: string;
+	price: string;
+	description: string;
+	categories: Category[];
+	selectedCategoryId: string | null;
+	tags?: Tag[];
+	selectedTagIds?: string[];
+	menus?: Menu[];
+	selectedMenuIds?: string[];
+	imageSrc?: string | null;
+	imageAlt?: string;
+	showRemoveImage?: boolean;
+	available?: boolean;
+	active?: boolean;
+}
+
+const {
+	name,
+	price,
+	description,
+	categories,
+	selectedCategoryId,
+	tags = [],
+	selectedTagIds = [],
+	menus = [],
+	selectedMenuIds = [],
+	imageSrc = null,
+	imageAlt = "",
+	showRemoveImage = false,
+	available = true,
+	active = true,
+} = Astro.props;
+const selectedTagSet = new Set(selectedTagIds);
+const selectedMenuSet = new Set(selectedMenuIds);
+---
+
+<div class="flex flex-col gap-1.5">
+	<Label for="name">Nombre</Label>
+	<Input id="name" name="name" required value={name} />
+</div>
+<div class="flex flex-col gap-1.5">
+	<Label for="price">Precio</Label>
+	<Input
+		id="price"
+		name="price"
+		type="number"
+		min="0"
+		step="0.01"
+		required
+		value={price}
+	/>
+</div>
+<div class="flex flex-col gap-1.5">
+	<Label for="description">Descripción</Label>
+	<Textarea id="description" name="description" rows={4}>
+		{description}
+	</Textarea>
+</div>
+
+<div class="flex flex-col gap-2">
+	<Label for="image">Imagen</Label>
+	{
+		imageSrc && (
+			<img
+				src={imageSrc}
+				alt={imageAlt}
+				class="h-32 w-32 rounded-md border border-border object-cover"
+			/>
+		)
+	}
+	<Input id="image" name="image" type="file" accept="image/*" />
+	{
+		showRemoveImage && imageSrc && (
+			<label class="flex items-center gap-2 text-sm">
+				<input type="checkbox" name="remove_image" value="1" />
+				Quitar imagen
+			</label>
+		)
+	}
+</div>
+
+<div class="flex flex-col gap-1.5">
+	<Label for="category_id">Categoría</Label>
+	{
+		categories.length === 0 ? (
+			<p class="text-muted-foreground text-sm">
+				No hay categorías. Creá alguna en{" "}
+				<a href="/app/categorias" class="underline">
+					Categorías
+				</a>
+				.
+			</p>
+		) : (
+			<select
+				id="category_id"
+				name="category_id"
+				class="border-input bg-background focus-visible:ring-ring flex h-9 w-full rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-none"
+			>
+				<option value="" selected={!selectedCategoryId}>
+					Sin categoría
+				</option>
+				{categories.map((cat) => (
+					<option value={cat.id} selected={selectedCategoryId === cat.id}>
+						{cat.name}
+					</option>
+				))}
+			</select>
+		)
+	}
+</div>
+
+<div class="flex flex-col gap-1.5">
+	<span class="text-sm font-medium leading-none">Menús</span>
+	{
+		menus.length === 0 ? (
+			<p class="text-muted-foreground text-sm">
+				No hay menús. Creá alguno en{" "}
+				<a href="/app/menus" class="underline">
+					Menús
+				</a>
+				.
+			</p>
+		) : (
+			<ul class="flex flex-col gap-2 rounded-md border border-border p-3">
+				{menus.map((menu) => {
+					const inputId = `menu-${menu.id}`;
+					return (
+						<li>
+							<label class="flex cursor-pointer items-center gap-2 text-sm" for={inputId}>
+								<input
+									id={inputId}
+									type="checkbox"
+									name="menus"
+									value={menu.id}
+									checked={selectedMenuSet.has(menu.id)}
+									class="accent-primary size-4"
+								/>
+								{menu.name}
+							</label>
+						</li>
+					);
+				})}
+			</ul>
+		)
+	}
+</div>
+
+<div class="flex flex-col gap-1.5">
+	<span class="text-sm font-medium leading-none">Etiquetas</span>
+	{
+		tags.length === 0 ? (
+			<p class="text-muted-foreground text-sm">
+				No hay etiquetas. Creá alguna en{" "}
+				<a href="/app/etiquetas" class="underline">
+					Etiquetas
+				</a>
+				.
+			</p>
+		) : (
+			<ul class="flex flex-col gap-2 rounded-md border border-border p-3">
+				{tags.map((tag) => {
+					const inputId = `tag-${tag.id}`;
+					return (
+						<li>
+							<label class="flex cursor-pointer items-center gap-2 text-sm" for={inputId}>
+								<input
+									id={inputId}
+									type="checkbox"
+									name="tags"
+									value={tag.id}
+									checked={selectedTagSet.has(tag.id)}
+									class="accent-primary size-4"
+								/>
+								{tag.name}
+							</label>
+						</li>
+					);
+				})}
+			</ul>
+		)
+	}
+</div>
+
+<div class="flex flex-wrap gap-4">
+	<label class="flex cursor-pointer items-center gap-2 text-sm">
+		<input
+			type="checkbox"
+			name="available"
+			value="1"
+			checked={available}
+			class="accent-primary size-4"
+		/>
+		Disponible
+	</label>
+	<label class="flex cursor-pointer items-center gap-2 text-sm">
+		<input
+			type="checkbox"
+			name="active"
+			value="1"
+			checked={active}
+			class="accent-primary size-4"
+		/>
+		Activo
+	</label>
+</div>

@@ -7,3 +7,4 @@ export {
 	initCategoryCards,
 } from "./categories";
 export { bootMenuProducts } from "./menus";
+export { bootProductosEditor } from "./products";

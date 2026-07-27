@@ -1,0 +1,141 @@
+---
+import { actions } from "astro:actions";
+import Dashboard from "@/layouts/Dashboard.astro";
+import ProductoFormFields from "@/components/app/ProductoFormFields.astro";
+import ConfirmDialog from "@/components/app/ConfirmDialog.astro";
+import { Button } from "@/components/starwind/button";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/starwind/card";
+import { requireOwner } from "@/lib/server/auth";
+import {
+	getProductById,
+	listCategoriesByRestaurant,
+	listMenuProductsByProduct,
+	listMenusByRestaurant,
+	listProductTags,
+	listTagsByRestaurant,
+} from "@/lib/server/db";
+
+const updateResult = Astro.getActionResult(actions.products.update);
+const deleteResult = Astro.getActionResult(actions.products.delete);
+
+if (deleteResult && !deleteResult.error) {
+	return Astro.redirect("/app/productos");
+}
+
+const signOutResult = Astro.getActionResult(actions.auth.signOut);
+if (signOutResult && !signOutResult.error) {
+	return Astro.redirect("/app/login");
+}
+
+const auth = await requireOwner(Astro);
+if (auth instanceof Response) return auth;
+const { restaurant, email } = auth;
+
+const productParam = Astro.params.id;
+if (!productParam) {
+	return Astro.redirect("/app/productos");
+}
+
+const product = await getProductById(Astro.locals.supabase, productParam);
+if (!product || product.restaurant_id !== restaurant.id) {
+	return Astro.redirect("/app/productos");
+}
+
+const [categories, tags, menus, productTags, membership] = await Promise.all([
+	listCategoriesByRestaurant(Astro.locals.supabase, restaurant.id),
+	listTagsByRestaurant(Astro.locals.supabase, restaurant.id),
+	listMenusByRestaurant(Astro.locals.supabase, restaurant.id),
+	listProductTags(Astro.locals.supabase, product.id),
+	listMenuProductsByProduct(Astro.locals.supabase, restaurant.id, product.id),
+]);
+
+const selectedTagIds = productTags.map((r) => r.tag_id);
+const selectedMenuIds = membership.map((r) => r.menu_id);
+
+const error = updateResult?.error?.message ?? deleteResult?.error?.message ?? null;
+const message = updateResult && !updateResult.error ? "Producto actualizado." : null;
+---
+
+<Dashboard
+	title={`DigiMenu — ${product.name}`}
+	email={email}
+	restaurantSlug={restaurant.slug}
+	restaurantName={restaurant.name}
+>
+	<div class="mx-auto flex max-w-2xl flex-col gap-6">
+		<div>
+			<p class="mb-1 text-sm">
+				<a href="/app/productos" class="text-muted-foreground hover:text-foreground">
+					← Productos
+				</a>
+			</p>
+			<h1 class="text-2xl font-semibold tracking-tight">Detalle de producto</h1>
+			<p class="text-muted-foreground">
+				Slug <code class="text-sm">{product.slug}</code>
+			</p>
+		</div>
+
+		{message && <p class="text-sm text-success">{message}</p>}
+		{error && <p class="text-sm text-error-foreground" role="alert">{error}</p>}
+
+		<Card>
+			<CardHeader>
+				<CardTitle>Editar</CardTitle>
+				<CardDescription>
+					Datos del producto, menús, categoría, etiquetas e imagen.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<form
+					method="POST"
+					action={actions.products.update}
+					enctype="multipart/form-data"
+					class="flex flex-col gap-4"
+				>
+					<input type="hidden" name="id" value={product.id} />
+					<ProductoFormFields
+						name={product.name}
+						price={String(product.price)}
+						description={product.description ?? ""}
+						categories={categories}
+						selectedCategoryId={product.category_id}
+						menus={menus}
+						selectedMenuIds={selectedMenuIds}
+						tags={tags}
+						selectedTagIds={selectedTagIds}
+						imageSrc={product.image_url}
+						imageAlt={product.name}
+						showRemoveImage
+						available={product.available}
+						active={product.active}
+					/>
+
+					<div class="flex flex-wrap gap-2">
+						<Button type="submit" variant="primary">Guardar</Button>
+					</div>
+				</form>
+
+				<div class="mt-6 border-t border-border pt-4">
+					<ConfirmDialog
+						title="Eliminar producto"
+						description={`¿Eliminar “${product.name}”? Esta acción no se puede deshacer.`}
+					>
+						<Button slot="trigger" type="button" variant="error" size="sm">
+							Eliminar producto
+						</Button>
+						<form slot="confirm" method="POST" action={actions.products.delete}>
+							<input type="hidden" name="id" value={product.id} />
+							<Button type="submit" variant="error" size="sm">Eliminar</Button>
+						</form>
+					</ConfirmDialog>
+				</div>
+			</CardContent>
+		</Card>
+	</div>
+</Dashboard>

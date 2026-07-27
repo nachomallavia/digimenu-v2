@@ -43,6 +43,10 @@ export {
 	updateProduct,
 } from "./products";
 
-export { listMenuProducts, setMenuProducts } from "./menu-products";
+export {
+	listMenuProducts,
+	listMenuProductsByProduct,
+	setMenuProducts,
+} from "./menu-products";
 export { listProductTags, setProductTags } from "./product-tags";
 export { listOwnerRestaurantIds, listRestaurantsForUser } from "./owner-restaurants";

@@ -15,6 +15,21 @@ export async function listMenuProducts(
 	return (data ?? []) as MenuProduct[];
 }
 
+/** Menus that include a product (for owner detail membership UI). */
+export async function listMenuProductsByProduct(
+	supabase: SupabaseClient,
+	restaurantId: string,
+	productId: string,
+): Promise<MenuProduct[]> {
+	const { data, error } = await supabase
+		.from("menu_products")
+		.select("*")
+		.eq("restaurant_id", restaurantId)
+		.eq("product_id", productId);
+	throwOnError(error, "Failed to list product menu membership");
+	return (data ?? []) as MenuProduct[];
+}
+
 /** Replace membership for a menu (ordered product ids). */
 export async function setMenuProducts(
 	supabase: SupabaseClient,

@@ -1,0 +1,153 @@
+---
+/**
+ * Owner productos list: search, category filter, inline edit table, sticky save.
+ */
+import PlusIcon from "@tabler/icons/outline/plus.svg";
+import SearchIcon from "@tabler/icons/outline/search.svg";
+import type { Category, Product } from "@/lib/domain";
+import ProductoTableRow from "@/components/app/ProductoTableRow.astro";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+
+type Props = {
+	products: Product[];
+	categories: Category[];
+	categoriaIdsJson: string;
+	tagIdsByProduct?: Record<string, string[]>;
+};
+
+const {
+	products,
+	categories,
+	categoriaIdsJson,
+	tagIdsByProduct = {},
+} = Astro.props;
+---
+
+<div
+	data-productos-editor
+	data-categoria-ids={categoriaIdsJson}
+	class="mx-auto flex max-w-full flex-col gap-8 pb-24"
+>
+	<div class="flex flex-wrap items-end justify-between gap-3">
+		<div class="flex flex-col gap-1">
+			<h1 class="text-2xl font-semibold tracking-tight">Productos</h1>
+			<p class="text-muted-foreground">Ítems del menú de tu restaurante.</p>
+		</div>
+		<Button variant="primary" href="/app/productos/new">
+			<PlusIcon class="size-4" />
+			Crear producto
+		</Button>
+	</div>
+
+	<div class="flex w-full flex-wrap items-center justify-between gap-4">
+		<div class="relative w-full max-w-sm">
+			<SearchIcon
+				class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+				aria-hidden="true"
+			/>
+			<Input
+				type="search"
+				placeholder="Buscar producto"
+				class="w-full pl-9"
+				data-productos-search
+				autocomplete="off"
+			/>
+		</div>
+		<div class="flex flex-wrap gap-2">
+			<select
+				data-productos-category
+				aria-label="Filtrar por categoría"
+				class="border-input bg-background h-9 rounded-md border px-3 text-sm"
+			>
+				<option value="">Todas las categorías</option>
+				<option value="__none">Sin categoría</option>
+				{
+					categories.map((c) => (
+						<option value={c.id}>{c.name}</option>
+					))
+				}
+			</select>
+		</div>
+	</div>
+
+	<input type="file" accept="image/*" hidden data-row-image-file />
+
+	<div class="overflow-x-auto rounded-md border border-border">
+		<table class="w-full caption-bottom text-sm" data-productos-table>
+			<thead class="[&_tr]:border-b">
+				<tr class="border-b border-border">
+					<th class="text-muted-foreground h-10 px-3 text-left align-middle font-medium">
+						Nombre
+					</th>
+					<th class="text-muted-foreground h-10 px-3 text-left align-middle font-medium">
+						Categoría
+					</th>
+					<th class="text-muted-foreground h-10 px-3 text-left align-middle font-medium">
+						Precio
+					</th>
+					<th class="text-muted-foreground h-10 px-3 text-left align-middle font-medium">
+						Acciones
+					</th>
+				</tr>
+			</thead>
+			<tbody class="[&_tr:last-child]:border-0" data-productos-tbody>
+				{
+					products.length === 0 ? (
+						<tr>
+							<td colspan="4" class="text-muted-foreground p-6 text-center">
+								No hay productos todavía.{" "}
+								<a href="/app/productos/new" class="underline">
+									Creá el primero
+								</a>
+								.
+							</td>
+						</tr>
+					) : (
+						products.map((p) => (
+							<ProductoTableRow
+								product={p}
+								categories={categories}
+								tagIds={tagIdsByProduct[p.id] ?? []}
+							/>
+						))
+					)
+				}
+				<tr data-productos-search-empty hidden>
+					<td colspan="4" class="text-muted-foreground p-6 text-center">
+						Ningún producto coincide con los filtros.
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</div>
+
+	<div
+		data-productos-sticky
+		hidden
+		class="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4 md:pl-[calc(var(--sidebar-width,16rem)+1rem)]"
+	>
+		<div
+			class="pointer-events-auto flex w-full max-w-xl items-center justify-between gap-3 rounded-lg border border-border bg-background px-4 py-3 shadow-lg"
+		>
+			<p class="text-sm font-medium" data-sticky-label>Guardar 0 cambios</p>
+			<div class="flex gap-2">
+				<Button type="button" variant="outline" size="sm" data-discard-edits>
+					Descartar
+				</Button>
+				<Button type="button" variant="primary" size="sm" data-save-edits>
+					Guardar
+				</Button>
+			</div>
+		</div>
+	</div>
+
+	<div
+		data-owner-toast
+		hidden
+		role="status"
+		class="fixed bottom-20 left-1/2 z-50 max-w-sm -translate-x-1/2 rounded-md border px-4 py-2 text-sm shadow-lg data-[toast-type=success]:border-success/40 data-[toast-type=success]:bg-background data-[toast-type=success]:text-success data-[toast-type=error]:border-error/40 data-[toast-type=error]:bg-background data-[toast-type=error]:text-error md:bottom-24"
+	>
+		<span data-owner-toast-message></span>
+	</div>
+</div>

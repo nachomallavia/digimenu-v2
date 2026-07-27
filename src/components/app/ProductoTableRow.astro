@@ -1,0 +1,96 @@
+---
+/**
+ * One editable product row for the owner productos table.
+ */
+import EditIcon from "@tabler/icons/outline/pencil.svg";
+import TrashIcon from "@tabler/icons/outline/trash.svg";
+import PhotoUpIcon from "@tabler/icons/outline/photo-up.svg";
+import type { Category, Product } from "@/lib/domain";
+import { Button } from "@/components/starwind/button";
+import { Input } from "@/components/starwind/input";
+
+type Props = {
+	product: Product;
+	categories: Category[];
+	tagIds?: string[];
+};
+
+const { product: p, categories, tagIds = [] } = Astro.props;
+const id = p.id;
+const catId = p.category_id ?? "";
+const detailHref = `/app/productos/${id}`;
+---
+
+<tr
+	class="border-b border-border transition-colors"
+	data-producto-row={id}
+	data-tag-ids={tagIds.join(" ")}
+>
+	<td class="p-2 align-middle">
+		<Input
+			type="text"
+			value={p.name}
+			class="w-full min-w-40"
+			required
+			data-producto-id={id}
+			data-field="name"
+			data-original={p.name}
+		/>
+	</td>
+	<td class="p-2 align-middle">
+		<select
+			class="border-input bg-background focus-visible:ring-ring flex h-9 w-full min-w-36 rounded-md border px-3 py-1 text-sm shadow-xs focus-visible:ring-1 focus-visible:outline-none"
+			data-producto-id={id}
+			data-field="category_id"
+			data-original={catId}
+		>
+			<option value="" selected={!catId}>Sin categoría</option>
+			{
+				categories.map((c) => (
+					<option value={c.id} selected={catId === c.id}>
+						{c.name}
+					</option>
+				))
+			}
+		</select>
+	</td>
+	<td class="p-2 align-middle">
+		<Input
+			type="number"
+			value={String(p.price)}
+			class="w-full min-w-24"
+			min="0"
+			step="0.01"
+			required
+			data-producto-id={id}
+			data-field="price"
+			data-original={String(p.price)}
+		/>
+	</td>
+	<td class="p-2 align-middle">
+		<div class="flex items-center gap-1">
+			<Button
+				variant="ghost"
+				size="sm"
+				type="button"
+				title="Cargar imagen"
+				data-upload-image-id={id}
+			>
+				<PhotoUpIcon class="size-4" />
+			</Button>
+			<Button variant="ghost" size="sm" href={detailHref} title="Editar detalle">
+				<EditIcon class="size-4" />
+			</Button>
+			<Button
+				variant="ghost"
+				size="sm"
+				type="button"
+				title="Eliminar"
+				data-delete-id={id}
+				data-delete-name={p.name}
+			>
+				<TrashIcon class="size-4" />
+			</Button>
+		</div>
+	</td>
+</tr>
