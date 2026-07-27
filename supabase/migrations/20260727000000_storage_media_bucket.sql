@@ -1,6 +1,6 @@
 -- DIG-5: public `media` bucket for restaurant logos + product/category images.
--- Paths: {restaurante_id}/logos|productos|categorias/...
--- Ownership-tight policies deferred to Phase 1 (owner_restaurantes).
+-- Paths: {restaurant_id}/logos|products|categories/...
+-- Ownership-tight policies deferred to Phase 1 (owner_restaurants).
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

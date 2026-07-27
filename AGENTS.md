@@ -25,7 +25,7 @@ Restaurant owners manage digital menus in `/app`; guests see branded menus at `/
 | Linear, product UI, chat | Spanish (ES) |
 | Commits | Short (EN or ES; keep brief) |
 | Code: folders, modules, TS identifiers | English |
-| DB: tables & columns | Spanish (`restaurantes`, `menu_productos`, …) |
+| DB: tables & columns | English (`restaurants`, `menu_products`, …). CSV ES headers map in import/export. |
 
 ## Legacy reference (DigiMenu EmDash / v1)
 
@@ -96,7 +96,7 @@ Diagrams for architecture live as mermaid **in this file**. Use `docs/` for pari
 
 1. **Fat `.astro`:** treat pages as a render engine — no deep nesting, no heavy branching, no business logic. Load data, render components, wire Actions.
 2. **Lib sprawl:** no orphan `lib/foo` without ownership and an `<area>.md`. Prefer extending existing server/client areas.
-3. **JSON `string[]` as relations:** M2M must be real junction tables (`menu_productos`, `producto_tags`). (JSONB for brand/theme config is fine.)
+3. **JSON `string[]` as relations:** M2M must be real junction tables (`menu_products`, `product_tags`). (JSONB for brand/theme config is fine.)
 4. **Dual write paths:** one mutation path — Astro Actions → `lib/server/*`. No parallel REST for the same write (except agreed upload/CSV helpers that still call the same server modules).
 5. **CMS admin as product UI:** no EmDash (or similar) admin dependency.
 6. **Unconsented abstractions:** no “just in case” layers without human OK.
@@ -105,30 +105,30 @@ Diagrams for architecture live as mermaid **in this file**. Use `docs/` for pari
 
 ```mermaid
 erDiagram
-  restaurantes ||--o{ menus : has
-  restaurantes ||--o{ categorias : has
-  restaurantes ||--o{ tags : has
-  restaurantes ||--o{ productos : has
-  menus ||--o{ menu_productos : includes
-  productos ||--o{ menu_productos : in
-  productos ||--o{ producto_tags : tagged
-  tags ||--o{ producto_tags : on
-  productos }o--o| categorias : optional
-  owner_restaurantes }o--|| restaurantes : owns
-  owner_restaurantes }o--|| auth_users : maps
+  restaurants ||--o{ menus : has
+  restaurants ||--o{ categories : has
+  restaurants ||--o{ tags : has
+  restaurants ||--o{ products : has
+  menus ||--o{ menu_products : includes
+  products ||--o{ menu_products : in
+  products ||--o{ product_tags : tagged
+  tags ||--o{ product_tags : on
+  products }o--o| categories : optional
+  owner_restaurants }o--|| restaurants : owns
+  owner_restaurants }o--|| auth_users : maps
 ```
 
 ### Domain rules (Alpha)
 
 - **IDs:** UUID PKs; `slug` unique per restaurant where public URLs need it.
-- **Tenancy:** `owner_restaurantes` (N:N). UX may assume one active restaurant; schema stays ready for more.
-- **Visibility:** no draft/publish CMS. Use simple flags (`activo` / `disponible`) for presence/stock later.
-- **Brand / theme:** JSONB on `restaurantes`:
+- **Tenancy:** `owner_restaurants` (N:N). UX may assume one active restaurant; schema stays ready for more.
+- **Visibility:** no draft/publish CMS. Use simple flags (`active` / `available`) for presence/stock later.
+- **Brand / theme:** JSONB on `restaurants`:
   - `brand` — palette + typefaces (identity)
   - `theme` — semantic roles for the public menu (values chosen from `brand`)
   - Parsed/validated in `lib/domain`; public layout exposes CSS variables; templates only consume vars.
-- **Media:** Storage paths `{restaurante_id}/…`; public URL stored on the row.
-- **Schema column details:** defer to Phase 1 ([DIG-10](https://linear.app/cheij-lab/issue/DIG-10)); must match this file when written.
+- **Media:** Storage paths `{restaurant_id}/…`; public URL stored on the row.
+- **Schema columns:** [docs/schema.md](./docs/schema.md) ([DIG-10](https://linear.app/cheij-lab/issue/DIG-10)).
 
 ## Request flows
 
@@ -156,7 +156,7 @@ flowchart LR
 
 - Phase 0 auth: magic link only (OAuth later, Phase 4).
 - Keep a signed `digimenu_owner` cookie for tenancy convenience (no EmDash snapshot fields).
-- RLS by restaurant ownership via `owner_restaurantes` from Phase 1.
+- RLS by restaurant ownership via `owner_restaurants` from Phase 1.
 
 ### Mutations
 
@@ -184,7 +184,7 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 | Google OAuth | Phase 4 |
 | Custom domains / subdomains | Phase 4 (slugs ready earlier) |
 | Multi-template gallery | Phase 4 (Classic only through CP3; registry can exist minimal) |
-| Full schema column list | After this doc; Phase 1 DIG-10 |
+| Full schema column list | Done — see `docs/schema.md` (DIG-10) |
 | Live collections adoption | Spike when useful |
 | Vercel cache / ISR details | Phase 3 DIG-26 |
 
@@ -201,5 +201,6 @@ Astro Actions in `src/actions/` → `lib/server/*`. Pages stay free of mutation 
 | Date | Decision |
 |------|----------|
 | 2026-07-26 | Repo created; AGENTS.md stub opened for DIG-2 |
-| 2026-07-26 | DIG-2 collaborative lock: module map `lib/{domain,server,client}`, Actions in `src/actions`, Starwind direct imports, ES DB / EN code, junctions not JSON M2M, brand/theme JSONB, SSR+RLS clients, thin `.astro`, `lib/**/<area>.md`, parity via sibling digimenu + `docs/parity.md`, no EmDash |
+| 2026-07-26 | DIG-2 collaborative lock: module map `lib/{domain,server,client}`, Actions in `src/actions`, Starwind direct imports, junctions not JSON M2M, brand/theme JSONB, SSR+RLS clients, thin `.astro`, `lib/**/<area>.md`, parity via sibling digimenu + `docs/parity.md`, no EmDash |
 | 2026-07-26 | Stack: Nanostores for `lib/client` state; legacy path locked to `/Users/ignaciomallaviabarrena/Documents/programacion/digimenu` |
+| 2026-07-27 | DIG-10: DB tables/columns English (`restaurants`, `menu_products`, …); CSV ES↔EN in import/export; `price numeric(12,2)`; flags `active`/`available`; see `docs/schema.md` |
