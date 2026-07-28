@@ -15,6 +15,7 @@ Must not import `lib/server/*`. Mutations go through Astro Actions.
 | `bootMenuProducts` | Menu product assign: search/category filter, checkboxes, debounced `menus.setProducts` (DIG-18) |
 | `bootProductosEditor` | Products list: Nanostores pending map, search/category filter, batch `products.batchUpdate`, row image/delete, CSV import/export (DIG-20/21) |
 | `bindProductsCsv` | CSV download / preview dialog (categories + tags) / import via Actions (DIG-21) |
+| `bindMenuQr` | QR preview + high-res PNG download for `[data-menu-qr]` (Resumen / Menús) |
 
 ## DIG-18 assign UX (simplified vs legacy Lista)
 

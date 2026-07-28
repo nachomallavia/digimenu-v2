@@ -9,3 +9,4 @@ export {
 export { bootMenuProducts } from "./menus";
 export { bootProductosEditor } from "./products";
 export { bindProductsCsv } from "./products-csv";
+export { bindMenuQr } from "./qr";

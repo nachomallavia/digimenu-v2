@@ -7,6 +7,7 @@ import { actions } from "astro:actions";
 import Dashboard from "@/layouts/Dashboard.astro";
 import MenuIconField from "@/components/app/MenuIconField.astro";
 import MenuProductsAssign from "@/components/app/MenuProductsAssign.astro";
+import MenuQr from "@/components/app/MenuQr.astro";
 import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { Label } from "@/components/starwind/label";
@@ -69,6 +70,11 @@ const plantillaMeta = getMenuTemplateMeta(menu.template);
 
 const error = updateResult?.error?.message ?? null;
 const message = updateResult && !updateResult.error ? "Guardado." : null;
+
+const publicMenuUrl = new URL(
+	`/m/${restaurant.slug}/${menu.slug}`,
+	Astro.url.origin,
+).href;
 ---
 
 <Dashboard
@@ -114,6 +120,22 @@ const message = updateResult && !updateResult.error ? "Guardado." : null;
 
 		{message && <p class="text-sm text-success">{message}</p>}
 		{error && <p class="text-sm text-error-foreground" role="alert">{error}</p>}
+
+		<Card>
+			<CardHeader>
+				<CardTitle>Código QR</CardTitle>
+				<CardDescription>
+					QR de esta carta pública ({`/m/${restaurant.slug}/${menu.slug}`}).
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<MenuQr
+					url={publicMenuUrl}
+					filename={`${restaurant.slug}-${menu.slug}-qr.png`}
+					label={menu.name}
+				/>
+			</CardContent>
+		</Card>
 
 		<Card data-menu-detail>
 			<CardHeader>
@@ -181,11 +203,12 @@ const message = updateResult && !updateResult.error ? "Guardado." : null;
 </Dashboard>
 
 <script>
-	import { bindIconPreview, bootMenuProducts } from "@/lib/client/owner";
+	import { bindIconPreview, bindMenuQr, bootMenuProducts } from "@/lib/client/owner";
 
 	function bind() {
 		const root = document.querySelector<HTMLElement>("[data-menu-detail]");
 		if (root) bindIconPreview(root);
+		bindMenuQr();
 		bootMenuProducts();
 	}
 	bind();

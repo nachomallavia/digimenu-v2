@@ -9,6 +9,7 @@ import ChevronUpIcon from "@tabler/icons/outline/chevron-up.svg";
 import ChevronDownIcon from "@tabler/icons/outline/chevron-down.svg";
 import Dashboard from "@/layouts/Dashboard.astro";
 import MenuIconField from "@/components/app/MenuIconField.astro";
+import MenuQr from "@/components/app/MenuQr.astro";
 import { Button } from "@/components/starwind/button";
 import { Input } from "@/components/starwind/input";
 import { getMenuTemplateMeta, isMenuIconId } from "@/lib/domain";
@@ -30,6 +31,7 @@ if (auth instanceof Response) return auth;
 const { restaurant, email } = auth;
 
 const menus = await listMenusByRestaurant(Astro.locals.supabase, restaurant.id);
+const origin = Astro.url.origin;
 
 const actionError =
 	createResult?.error?.message ||
@@ -175,6 +177,17 @@ const message =
 										)}
 									</div>
 								</form>
+								<div class="mt-4 border-t border-border pt-3">
+									<MenuQr
+										compact
+										url={new URL(
+											`/m/${restaurant.slug}/${menu.slug}`,
+											origin,
+										).href}
+										filename={`${restaurant.slug}-${menu.slug}-qr.png`}
+										label={`QR — ${menu.name}`}
+									/>
+								</div>
 							</li>
 						);
 					})}
@@ -185,12 +198,13 @@ const message =
 </Dashboard>
 
 <script>
-	import { bindIconPreview } from "@/lib/client/owner";
+	import { bindIconPreview, bindMenuQr } from "@/lib/client/owner";
 
 	function bind() {
 		document.querySelectorAll<HTMLElement>("[data-menu-card]").forEach((card) => {
 			bindIconPreview(card);
 		});
+		bindMenuQr();
 	}
 	bind();
 	document.addEventListener("astro:page-load", bind);

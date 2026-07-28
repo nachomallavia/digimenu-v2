@@ -1,0 +1,76 @@
+---
+/**
+ * Owner QR preview + PNG download. Client binds via `bindMenuQr`.
+ */
+import { Button } from "@/components/starwind/button";
+
+interface Props {
+	url: string;
+	filename?: string;
+	label?: string;
+	compact?: boolean;
+}
+
+const {
+	url,
+	filename = "menu-qr.png",
+	label = "Código QR",
+	compact = false,
+} = Astro.props;
+
+const previewSize = compact ? 128 : 256;
+const downloadSize = 1024;
+
+let displayPath = url;
+try {
+	displayPath = new URL(url).pathname;
+} catch {
+	/* keep raw url */
+}
+---
+
+<div
+	class:list={[
+		"flex gap-3",
+		compact ? "items-center" : "flex-col sm:flex-row sm:items-start",
+	]}
+	data-menu-qr
+	data-url={url}
+	data-filename={filename}
+	data-preview-size={String(previewSize)}
+	data-download-size={String(downloadSize)}
+>
+	<canvas
+		data-qr-canvas
+		width={previewSize}
+		height={previewSize}
+		class:list={[
+			"bg-white rounded-md border border-border shrink-0",
+			compact ? "size-20" : "size-64 max-w-full",
+		]}
+		aria-label={label}
+	></canvas>
+	<div class:list={["flex min-w-0 flex-col gap-2", compact ? "flex-1" : ""]}>
+		{
+			!compact && (
+				<div>
+					<p class="text-sm font-medium">{label}</p>
+					<p class="text-muted-foreground truncate text-xs" title={url}>
+						<code>{displayPath}</code>
+					</p>
+				</div>
+			)
+		}
+		{
+			compact && (
+				<p class="text-muted-foreground truncate text-xs" title={url}>
+					<code>{displayPath}</code>
+				</p>
+			)
+		}
+		<p class="text-sm text-error-foreground" data-qr-error hidden role="alert"></p>
+		<Button type="button" variant="outline" size="sm" data-qr-download disabled>
+			Descargar PNG
+		</Button>
+	</div>
+</div>

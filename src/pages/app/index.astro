@@ -1,6 +1,7 @@
 ---
 import { actions } from "astro:actions";
 import Dashboard from "@/layouts/Dashboard.astro";
+import MenuQr from "@/components/app/MenuQr.astro";
 import { Button } from "@/components/starwind/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/starwind/card";
 import { requireOwner } from "@/lib/server/auth";
@@ -19,6 +20,8 @@ if (signOutResult && !signOutResult.error) {
 const auth = await requireOwner(Astro);
 if (auth instanceof Response) return auth;
 const { restaurant, email } = auth;
+
+const publicMenuUrl = new URL(`/m/${restaurant.slug}`, Astro.url.origin).href;
 
 const [products, categories, menus, tags] = await Promise.all([
 	listProductsByRestaurant(Astro.locals.supabase, restaurant.id),
@@ -83,6 +86,22 @@ const cards = [
 			)
 		}
 
+		<Card>
+			<CardHeader>
+				<CardTitle>Código QR</CardTitle>
+				<CardDescription>
+					Imprimí o compartí el QR de la landing pública del restaurante.
+				</CardDescription>
+			</CardHeader>
+			<CardContent>
+				<MenuQr
+					url={publicMenuUrl}
+					filename={`${restaurant.slug}-qr.png`}
+					label="Landing del restaurante"
+				/>
+			</CardContent>
+		</Card>
+
 		<div class="grid gap-4 sm:grid-cols-2">
 			{
 				cards.map((card) => (
@@ -111,6 +130,7 @@ const cards = [
 
 <script>
 	import { prefetch } from "astro:prefetch";
+	import { bindMenuQr } from "@/lib/client/owner";
 
 	function prefetchPanelRoutes() {
 		const routes = [
@@ -130,5 +150,10 @@ const cards = [
 		}
 	}
 
-	prefetchPanelRoutes();
+	function bind() {
+		bindMenuQr();
+		prefetchPanelRoutes();
+	}
+	bind();
+	document.addEventListener("astro:page-load", bind);
 </script>
